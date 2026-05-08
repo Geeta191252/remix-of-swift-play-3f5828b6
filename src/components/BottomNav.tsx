@@ -1,11 +1,13 @@
 import { motion } from "framer-motion";
 import navGames from "@/assets/nav-games.png";
+import navMarket from "@/assets/nav-market.png";
 import navEarn from "@/assets/nav-earn.png";
 import navFriends from "@/assets/nav-friends.png";
 import navWallet from "@/assets/nav-wallet.png";
 
 const tabs = [
   { icon: navGames, label: "Games", activeColor: "hsl(0 75% 60%)" },
+  { icon: navMarket, label: "Market", activeColor: "hsl(25 90% 55%)" },
   { icon: navEarn, label: "Earn", activeColor: "hsl(45 90% 55%)" },
   { icon: navFriends, label: "Invite", activeColor: "hsl(280 65% 60%)" },
   { icon: navWallet, label: "Wallet", activeColor: "hsl(140 60% 50%)" },
