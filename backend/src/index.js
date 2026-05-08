@@ -1996,15 +1996,27 @@ app.post("/api/aviator/bet", async (req, res) => {
 // POST /api/aviator/cashout
 app.post("/api/aviator/cashout", async (req, res) => {
   try {
-    const { userId, currency } = req.body;
+    const { userId, currency, slot } = req.body;
     const curr = currency === "star" ? "star" : "dollar";
     const s = aviatorState[curr];
     if (s.phase !== "flying") return res.status(400).json({ error: "Cannot cash out now" });
 
     const numericId = Number(userId);
-    const bet = s.bets[numericId];
+    const slotNum = slot === 2 ? 2 : 1;
+    const key = `${numericId}:${slotNum}`;
+    const bet = s.bets[key];
     if (!bet) return res.status(400).json({ error: "No active bet" });
     if (bet.cashedOutAt) return res.status(400).json({ error: "Already cashed out" });
+
+    // Per-user cooldown: 1-2 wins per 5-7 rounds.
+    // If user is in cooldown, force-crash plane at current multiplier and reject cashout.
+    const cooldownUntil = s.userCooldown[numericId] || 0;
+    if (s.roundNumber <= cooldownUntil) {
+      const elapsedC = Date.now() - s.flightStartTime;
+      const mC = Math.max(1.0, aviatorMultiplierAt(elapsedC));
+      s.crashAt = Math.min(s.crashAt, Number(mC.toFixed(2)));
+      return res.status(400).json({ error: "Plane crashed!" });
+    }
 
     const elapsed = Date.now() - s.flightStartTime;
     const mult = Math.min(aviatorMultiplierAt(elapsed), s.crashAt);
@@ -2013,6 +2025,10 @@ app.post("/api/aviator/cashout", async (req, res) => {
     bet.cashedOutAt = Number(mult.toFixed(2));
     bet.winAmount = win;
     s.totalPaidOut += win;
+
+    // Set cooldown: next 4-6 rounds this user can't win
+    const cd = 4 + Math.floor(Math.random() * 3);
+    s.userCooldown[numericId] = s.roundNumber + cd;
 
     // Credit winning balance immediately + create win tx
     const user = await getOrCreateUser(numericId);
@@ -2032,23 +2048,18 @@ app.post("/api/aviator/cashout", async (req, res) => {
     // House-edge enforcement: keep at least profit% of pool.
     const profitPct = await getAviatorProfitPercent();
     const maxPayout = s.totalPool * (1 - profitPct / 100);
-    // If projected payout (current paid + remaining bets cashing now) exceeds maxPayout, force crash.
     let remainingExposure = 0;
     for (const k of Object.keys(s.bets)) {
       const b = s.bets[k];
       if (!b.cashedOutAt) remainingExposure += b.amount * mult;
     }
     if (s.totalPaidOut >= maxPayout) {
-      // Already over budget — crash on the next tick at current multiplier
       s.crashAt = Number(mult.toFixed(2));
     } else if (s.totalPaidOut + remainingExposure > maxPayout) {
-      // Tighten cap so we crash when paid-out reaches the max
-      // Compute multiplier at which expected payout (assuming all remaining cash out) = maxPayout
       const remainingBetSum = Object.values(s.bets).filter((b) => !b.cashedOutAt).reduce((a, b) => a + b.amount, 0);
       if (remainingBetSum > 0) {
         const targetMult = (maxPayout - s.totalPaidOut) / remainingBetSum;
         const safeTarget = Math.max(1.01, Math.min(s.crashAt, Number(targetMult.toFixed(2))));
-        // Only lower the cap, never raise
         if (safeTarget < s.crashAt) s.crashAt = safeTarget;
       }
     }
