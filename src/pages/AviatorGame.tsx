@@ -388,6 +388,7 @@ const AviatorGame = () => {
               placeBet={placeBet}
               cashOut={cashOut}
               currency={currency}
+              setCurrency={setCurrency}
             />
             <BetPanel
               title="AUTO"
@@ -400,6 +401,7 @@ const AviatorGame = () => {
               placeBet={placeBet}
               cashOut={cashOut}
               currency={currency}
+              setCurrency={setCurrency}
               muted
             />
           </div>
