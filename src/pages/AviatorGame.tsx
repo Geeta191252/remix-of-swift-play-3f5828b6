@@ -169,7 +169,7 @@ const AviatorGame = () => {
 
   const progress = useMemo(() => {
     if (phase === "betting") return 0;
-    return Math.min(Math.max((multiplier - 1) / 4.7, 0.02), 0.97);
+    return Math.min(Math.max(Math.pow((multiplier - 1) / 2.9, 0.62), 0.04), 0.97);
   }, [multiplier, phase]);
 
   const sX = 4;
@@ -303,20 +303,31 @@ const AviatorGame = () => {
             <div className="absolute left-5 right-0 bottom-5 h-px bg-border/40" />
 
             {phase !== "betting" && (
-              <svg className="absolute inset-x-5 bottom-5 top-4 w-[calc(100%-2.5rem)] h-[calc(100%-2.25rem)]" preserveAspectRatio="none" viewBox="0 0 100 100">
-                <defs>
-                  <linearGradient id="aviatorStroke" x1="0" y1="1" x2="1" y2="0">
-                    <stop offset="0%" stopColor="hsl(350 100% 45%)" />
-                    <stop offset="100%" stopColor="hsl(350 100% 58%)" />
-                  </linearGradient>
-                  <linearGradient id="aviatorFill" x1="0" y1="1" x2="1" y2="0">
-                    <stop offset="0%" stopColor="hsl(350 100% 45% / 0.08)" />
-                    <stop offset="100%" stopColor="hsl(350 100% 45% / 0.34)" />
-                  </linearGradient>
-                </defs>
-                <path d={trailFillPath} fill="url(#aviatorFill)" />
-                <path d={trailPath} stroke="url(#aviatorStroke)" strokeWidth="0.7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-              </svg>
+              <div className="absolute inset-x-5 bottom-5 top-4 pointer-events-none">
+                <svg className="absolute inset-0 h-full w-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+                  <defs>
+                    <linearGradient id="aviatorStroke" x1="0" y1="1" x2="1" y2="0">
+                      <stop offset="0%" stopColor="hsl(350 100% 45%)" />
+                      <stop offset="100%" stopColor="hsl(350 100% 58%)" />
+                    </linearGradient>
+                    <linearGradient id="aviatorFill" x1="0" y1="1" x2="1" y2="0">
+                      <stop offset="0%" stopColor="hsl(350 100% 45% / 0.08)" />
+                      <stop offset="100%" stopColor="hsl(350 100% 45% / 0.34)" />
+                    </linearGradient>
+                  </defs>
+                  <path d={trailFillPath} fill="url(#aviatorFill)" />
+                  <path d={trailPath} stroke="url(#aviatorStroke)" strokeWidth="0.72" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                </svg>
+
+                <motion.div
+                  className="absolute pointer-events-none"
+                  style={{ left: `${planeX}%`, top: `${planeY}%`, transform: "translate(-50%, -50%)" }}
+                  animate={phase === "crashed" ? { x: 190, y: -130, opacity: 0, scale: 0.85 } : { x: 0, y: 0, opacity: 1, scale: 1 }}
+                  transition={{ duration: phase === "crashed" ? 1.05 : 0.05, ease: "easeOut" }}
+                >
+                  <img src={planeFrame} alt="" className={`h-16 sm:h-20 lg:h-28 w-28 sm:w-36 lg:w-44 object-contain ${phase === "crashed" ? "drop-shadow-[0_0_18px_hsl(0_85%_55%)]" : "drop-shadow-[0_0_14px_hsl(45_100%_55%)]"}`} />
+                </motion.div>
+              </div>
             )}
 
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -350,17 +361,6 @@ const AviatorGame = () => {
               <div className="absolute left-4 bottom-6 pointer-events-none">
                 <img src={staticPlane} alt="" className="h-20 w-28 object-contain" />
               </div>
-            )}
-
-            {phase !== "betting" && (
-              <motion.div
-                className="absolute pointer-events-none"
-                style={{ left: `calc(20px + ${planeX}% * 0.94)`, top: `calc(16px + ${planeY}% * 0.90)`, transform: "translate(-50%, -50%)" }}
-                animate={phase === "crashed" ? { x: 190, y: -130, opacity: 0, scale: 0.85 } : { x: 0, y: 0, opacity: 1, scale: 1 }}
-                transition={{ duration: phase === "crashed" ? 1.05 : 0.05, ease: "easeOut" }}
-              >
-                <img src={planeFrame} alt="" className={`h-20 sm:h-28 w-32 sm:w-44 object-contain ${phase === "crashed" ? "drop-shadow-[0_0_18px_hsl(0_85%_55%)]" : "drop-shadow-[0_0_14px_hsl(45_100%_55%)]"}`} />
-              </motion.div>
             )}
           </div>
 
