@@ -13,6 +13,7 @@ import greedyKingThumb from "@/assets/greedy-king-thumb.png";
 import gameDice from "@/assets/game-dice.jpg";
 import gameCarnivalSpin from "@/assets/game-carnival-spin.jpg";
 import gameMines from "@/assets/game-mines.jpg";
+import gameAviator from "@/assets/game-aviator.jpg";
 import homeBg from "@/assets/home-bg.png";
 
 interface GameTileProps {
@@ -79,6 +80,7 @@ const HomeScreen = () => {
   const goToDiceMaster = () => navigate("/dice-master");
   const goToCarnivalSpin = () => navigate("/carnival-spin");
   const goToMines = () => navigate("/mines");
+  const goToAviator = () => navigate("/aviator");
   const goToAdmin = () => navigate("/admin");
 
   const telegramUser = getTelegramUser();

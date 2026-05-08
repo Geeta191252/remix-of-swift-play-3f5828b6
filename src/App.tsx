@@ -10,6 +10,7 @@ import GreedyKingGame from "./pages/GreedyKingGame";
 import DiceMasterGame from "./pages/DiceMasterGame";
 import CarnivalSpinGame from "./pages/CarnivalSpinGame";
 import MinesGame from "./pages/MinesGame";
+import AviatorGame from "./pages/AviatorGame";
 import AdminPanel from "./pages/AdminPanel";
 
 import NotFound from "./pages/NotFound";
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/dice-master" element={<DiceMasterGame />} />
               <Route path="/carnival-spin" element={<CarnivalSpinGame />} />
               <Route path="/mines" element={<MinesGame />} />
+              <Route path="/aviator" element={<AviatorGame />} />
               <Route path="/admin" element={<AdminPanel />} />
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
