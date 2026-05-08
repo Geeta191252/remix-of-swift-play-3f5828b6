@@ -999,7 +999,80 @@ app.post("/api/telegram-webhook", async (req, res) => {
       return res.sendStatus(200);
     }
 
-    // Handle successful payment
+    // Handle /broadcastgame command - send a specific game to all users with Play button
+    // Usage: /broadcastgame <gameKey> <message>
+    // gameKey: aviator | mines | dice | carnival | greedy
+    if (update.message?.text && update.message.text.startsWith("/broadcastgame")) {
+      const chatId = update.message.chat.id;
+      const fromId = update.message.from.id;
+
+      if (String(fromId) !== "6965488457") {
+        await bot.sendMessage(chatId, "⛔ You are not authorized to use broadcastgame.");
+        return res.sendStatus(200);
+      }
+
+      const args = update.message.text.replace("/broadcastgame", "").trim();
+      const parts = args.split(/\s+/);
+      const gameKey = (parts[0] || "").toLowerCase();
+      const customMsg = parts.slice(1).join(" ").trim();
+
+      const GAMES = {
+        aviator:  { startapp: "g_aviator",  title: "✈️ Aviator",        emoji: "✈️" },
+        mines:    { startapp: "g_mines",    title: "💣 Mines",          emoji: "💣" },
+        dice:     { startapp: "g_dice",     title: "🎲 Dice Master",    emoji: "🎲" },
+        carnival: { startapp: "g_carnival", title: "🎡 Carnival Spin",  emoji: "🎡" },
+        greedy:   { startapp: "g_greedy",   title: "👑 Greedy King",    emoji: "👑" },
+      };
+
+      const game = GAMES[gameKey];
+      if (!game) {
+        await bot.sendMessage(
+          chatId,
+          "⚠️ Usage: `/broadcastgame <game> <optional message>`\n\n" +
+          "Available games:\n" +
+          "• `aviator` — Aviator\n" +
+          "• `mines` — Mines\n" +
+          "• `dice` — Dice Master\n" +
+          "• `carnival` — Carnival Spin\n" +
+          "• `greedy` — Greedy King\n\n" +
+          "Example:\n`/broadcastgame aviator 🚀 Big multipliers waiting!`",
+          { parse_mode: "Markdown" }
+        );
+        return res.sendStatus(200);
+      }
+
+      const playUrl = `https://t.me/RoyalKingGameBot/RoyalKingGame?startapp=${game.startapp}`;
+      const text = customMsg
+        ? `${game.emoji} *${game.title}*\n\n${customMsg}`
+        : `${game.emoji} *${game.title}* is live!\n\nTap below to play now and win big! 🏆`;
+
+      const allUsers = await User.find({ telegramId: { $gt: 0 } }).select("telegramId").lean();
+      let sent = 0;
+      let failed = 0;
+
+      await bot.sendMessage(chatId, `📡 Broadcasting *${game.title}* to ${allUsers.length} users...`, { parse_mode: "Markdown" });
+
+      for (const user of allUsers) {
+        try {
+          await bot.sendMessage(user.telegramId, text, {
+            parse_mode: "Markdown",
+            reply_markup: {
+              inline_keyboard: [
+                [{ text: `▶️ Play ${game.title}`, url: playUrl }],
+              ],
+            },
+          });
+          sent++;
+        } catch (err) {
+          failed++;
+        }
+        if (sent % 25 === 0) await new Promise(r => setTimeout(r, 1000));
+      }
+
+      await bot.sendMessage(chatId, `✅ Game broadcast complete!\n\n🎮 Game: ${game.title}\n📨 Sent: ${sent}\n❌ Failed: ${failed}\n👥 Total: ${allUsers.length}`);
+
+      return res.sendStatus(200);
+    }
     if (update.message?.successful_payment) {
       const payment = update.message.successful_payment;
       const payload = JSON.parse(payment.invoice_payload);
