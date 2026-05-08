@@ -87,12 +87,6 @@ const AviatorGame = () => {
 
   const unlockAudio = useCallback(() => {
     audioUnlockedRef.current = true;
-    const bg = bgAudioRef.current;
-    if (bg) {
-      bg.volume = 0.28;
-      bg.loop = true;
-      bg.play().catch(() => undefined);
-    }
   }, []);
 
   useEffect(() => {
