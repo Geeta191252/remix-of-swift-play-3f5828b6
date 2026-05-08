@@ -315,7 +315,7 @@ const AviatorGame = () => {
                   </linearGradient>
                 </defs>
                 <path d={trailFillPath} fill="url(#aviatorFill)" />
-                <path d={trailPath} stroke="url(#aviatorStroke)" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                <path d={trailPath} stroke="url(#aviatorStroke)" strokeWidth="0.7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
               </svg>
             )}
 
