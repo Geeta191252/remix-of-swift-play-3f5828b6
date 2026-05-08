@@ -298,6 +298,40 @@ const AdminPanel = () => {
                 </motion.div>
               </div>
 
+              {/* Aviator profit control */}
+              <div className="rounded-2xl p-4" style={{
+                background: "linear-gradient(135deg, hsla(350, 80%, 45%, 0.18), hsla(15, 80%, 45%, 0.18))",
+                border: "1px solid hsla(350, 80%, 50%, 0.35)",
+              }}>
+                <h2 className="font-bold text-sm mb-2" style={{ color: "hsl(45 90% 70%)" }}>✈️ Aviator House Profit</h2>
+                <p className="text-xs mb-3" style={{ color: "hsl(0 0% 70%)" }}>
+                  Current: <span className="font-bold" style={{ color: "hsl(350 90% 65%)" }}>{aviatorProfit}%</span> kept by house each round.
+                </p>
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="number"
+                    min={0}
+                    max={95}
+                    value={aviatorProfitInput}
+                    onChange={(e) => setAviatorProfitInput(e.target.value)}
+                    className="flex-1 rounded-lg px-3 py-2 text-sm font-bold outline-none"
+                    style={{ background: "hsla(260, 40%, 15%, 0.8)", color: "hsl(0 0% 95%)", border: "1px solid hsla(45, 60%, 50%, 0.3)" }}
+                  />
+                  <span className="text-sm font-bold" style={{ color: "hsl(45 90% 70%)" }}>%</span>
+                  <button
+                    onClick={saveAviatorProfit}
+                    disabled={savingProfit}
+                    className="px-4 py-2 rounded-lg text-xs font-bold disabled:opacity-50"
+                    style={{ background: "hsl(350 80% 50%)", color: "white" }}
+                  >
+                    {savingProfit ? "Saving…" : "Save"}
+                  </button>
+                </div>
+                <p className="text-[10px] mt-2" style={{ color: "hsl(0 0% 55%)" }}>
+                  Example: 50% means if total bets are $100, total cashouts are capped at $50.
+                </p>
+              </div>
+
               {/* Recent Deposits */}
               <div>
                 <h2 className="font-bold text-sm mb-3" style={{ color: "hsl(45 90% 70%)" }}>📋 Recent Deposits</h2>
