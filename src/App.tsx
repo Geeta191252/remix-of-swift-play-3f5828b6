@@ -1,8 +1,9 @@
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { BalanceProvider } from "@/contexts/BalanceContext";
 import { TonConnectUIProvider } from "@tonconnect/ui-react";
 import Index from "./pages/Index";
@@ -19,6 +20,31 @@ const queryClient = new QueryClient();
 
 const manifestUrl = `${window.location.origin}/tonconnect-manifest.json`;
 
+// Map startapp params (from Telegram bot deep links) to in-app routes.
+const STARTAPP_GAME_ROUTES: Record<string, string> = {
+  g_aviator: "/aviator",
+  g_mines: "/mines",
+  g_dice: "/dice-master",
+  g_carnival: "/carnival-spin",
+  g_greedy: "/greedy-king",
+};
+
+const StartParamNavigator = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    try {
+      const tg = (window as any).Telegram?.WebApp;
+      const param: string | undefined = tg?.initDataUnsafe?.start_param;
+      if (!param) return;
+      const target = STARTAPP_GAME_ROUTES[param];
+      if (target) navigate(target, { replace: true });
+    } catch {
+      // ignore
+    }
+  }, [navigate]);
+  return null;
+};
+
 const App = () => (
   <TonConnectUIProvider manifestUrl={manifestUrl}>
     <QueryClientProvider client={queryClient}>
@@ -27,6 +53,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <StartParamNavigator />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/greedy-king" element={<GreedyKingGame />} />
