@@ -319,26 +319,30 @@ const AviatorGame = () => {
             )}
           </div>
 
-          {/* Rocket */}
+          {/* Rocket — sits at the tip of the trail, rotated along curve tangent */}
           {phase === "flying" && (
-            <motion.div
-              className="absolute"
+            <div
+              className="absolute pointer-events-none"
               style={{
                 left: `${planeX}%`,
                 top: `${planeY}%`,
-                transform: "translate(-50%, -50%)",
+                transform: `translate(-50%, -50%) rotate(${angle - 90}deg)`,
+                transition: "left 0.05s linear, top 0.05s linear",
               }}
-              animate={{ y: [0, -3, 0] }}
-              transition={{ duration: 0.5, repeat: Infinity }}
             >
-              <div className="text-5xl" style={{ filter: "drop-shadow(0 0 10px hsl(310 90% 60%))", transform: "rotate(-30deg)" }}>
+              <motion.div
+                animate={{ y: [0, -2, 0] }}
+                transition={{ duration: 0.4, repeat: Infinity }}
+                className="text-5xl"
+                style={{ filter: "drop-shadow(0 0 12px hsl(45 95% 60%)) drop-shadow(0 0 20px hsl(310 90% 60%))" }}
+              >
                 🚀
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
           )}
           {phase === "crashed" && (
             <motion.div
-              className="absolute"
+              className="absolute pointer-events-none"
               style={{ left: `${planeX}%`, top: `${planeY}%`, transform: "translate(-50%, -50%)" }}
               animate={{ y: 200, rotate: 180, opacity: 0 }}
               transition={{ duration: 1.2 }}
