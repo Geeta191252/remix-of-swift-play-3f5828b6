@@ -319,35 +319,52 @@ const AviatorGame = () => {
             )}
           </div>
 
-          {/* Rocket — sits at the tip of the trail, rotated along curve tangent */}
+          {/* Plane — realistic Aviator-style red paper plane */}
           {phase === "flying" && (
             <div
               className="absolute pointer-events-none"
               style={{
                 left: `${planeX}%`,
                 top: `${planeY}%`,
-                transform: `translate(-50%, -50%) rotate(${angle - 90}deg)`,
+                transform: `translate(-50%, -50%) rotate(${angle}deg)`,
                 transition: "left 0.05s linear, top 0.05s linear",
+                filter: "drop-shadow(0 0 8px hsla(0, 90%, 55%, 0.6)) drop-shadow(0 4px 12px hsla(0, 0%, 0%, 0.5))",
               }}
             >
-              <motion.div
-                animate={{ y: [0, -2, 0] }}
-                transition={{ duration: 0.4, repeat: Infinity }}
-                className="text-5xl"
-                style={{ filter: "drop-shadow(0 0 12px hsl(45 95% 60%)) drop-shadow(0 0 20px hsl(310 90% 60%))" }}
-              >
-                🚀
-              </motion.div>
+              <svg width="64" height="64" viewBox="0 0 64 64" style={{ display: "block" }}>
+                <defs>
+                  <linearGradient id="planeBody" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#ff5252" />
+                    <stop offset="50%" stopColor="#d32f2f" />
+                    <stop offset="100%" stopColor="#8b0000" />
+                  </linearGradient>
+                  <linearGradient id="planeShade" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#ff7676" />
+                    <stop offset="100%" stopColor="#a01515" />
+                  </linearGradient>
+                </defs>
+                {/* Top wing */}
+                <polygon points="6,32 56,28 32,34" fill="url(#planeShade)" stroke="#5a0000" strokeWidth="0.8" strokeLinejoin="round" />
+                {/* Bottom wing (darker) */}
+                <polygon points="6,32 56,28 28,42" fill="url(#planeBody)" stroke="#3a0000" strokeWidth="0.8" strokeLinejoin="round" />
+                {/* Center fold highlight */}
+                <line x1="6" y1="32" x2="56" y2="28" stroke="#ffb0b0" strokeWidth="0.6" opacity="0.7" />
+                {/* Tail accent */}
+                <polygon points="6,32 14,30 14,34" fill="#5a0000" opacity="0.6" />
+              </svg>
             </div>
           )}
           {phase === "crashed" && (
             <motion.div
               className="absolute pointer-events-none"
               style={{ left: `${planeX}%`, top: `${planeY}%`, transform: "translate(-50%, -50%)" }}
-              animate={{ y: 200, rotate: 180, opacity: 0 }}
-              transition={{ duration: 1.2 }}
+              animate={{ y: 250, rotate: 540, opacity: 0 }}
+              transition={{ duration: 1.5, ease: "easeIn" }}
             >
-              <div className="text-5xl">💥</div>
+              <svg width="64" height="64" viewBox="0 0 64 64">
+                <polygon points="6,32 56,28 32,34" fill="#8b0000" stroke="#3a0000" strokeWidth="0.8" />
+                <polygon points="6,32 56,28 28,42" fill="#5a0000" stroke="#3a0000" strokeWidth="0.8" />
+              </svg>
             </motion.div>
           )}
         </div>
