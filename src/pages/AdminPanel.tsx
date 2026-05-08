@@ -257,7 +257,7 @@ const AdminPanel = () => {
   };
 
   useEffect(() => {
-    if (isOwner) { fetchAll(); fetchAviatorProfit(); fetchManualQueue("dollar"); }
+    if (isOwner) { fetchAll(); fetchAviatorProfit(); fetchManualQueue("dollar"); fetchOffers(); }
   }, []);
 
   const handleAdjust = async () => {
