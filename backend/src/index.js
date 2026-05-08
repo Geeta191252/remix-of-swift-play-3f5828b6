@@ -2081,11 +2081,15 @@ app.get("/api/aviator/my-bet", (req, res) => {
   const curr = req.query.currency === "star" ? "star" : "dollar";
   const s = aviatorState[curr];
   const numericId = Number(req.query.userId);
-  const b = s.bets[numericId];
+  const slots = [1, 2].map((slot) => {
+    const b = s.bets[`${numericId}:${slot}`];
+    return b ? { slot, amount: b.amount, cashedOutAt: b.cashedOutAt, winAmount: b.winAmount } : null;
+  }).filter(Boolean);
   res.json({
     roundNumber: s.roundNumber,
     phase: s.phase,
-    bet: b ? { amount: b.amount, cashedOutAt: b.cashedOutAt, winAmount: b.winAmount } : null,
+    bets: slots,
+    bet: slots[0] || null, // backwards compat
   });
 });
 
