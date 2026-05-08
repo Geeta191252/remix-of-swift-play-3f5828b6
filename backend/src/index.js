@@ -2169,7 +2169,7 @@ app.post("/api/admin/aviator/manual/set", (req, res) => {
   if (String(ownerId) !== "6965488457") return res.status(403).json({ error: "Unauthorized" });
   if (!Array.isArray(queue)) return res.status(400).json({ error: "queue must be an array" });
   const curr = getAviatorCurr(req);
-  const cleaned = queue.map((v) => Number(v)).filter((n) => !isNaN(n) && n >= 1.0 && n <= 1000).map((n) => Number(n.toFixed(2)));
+  const cleaned = queue.map((v) => Number(v)).filter((n) => !isNaN(n) && n > 0 && n <= 100000).map((n) => Number(n.toFixed(2)));
   aviatorState[curr].manualQueue = cleaned;
   res.json({ success: true, queue: cleaned });
 });
