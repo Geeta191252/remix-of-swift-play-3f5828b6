@@ -2108,15 +2108,8 @@ app.post("/api/aviator/cashout", async (req, res) => {
     if (!bet) return res.status(400).json({ error: "No active bet" });
     if (bet.cashedOutAt) return res.status(400).json({ error: "Already cashed out" });
 
-    // Per-user cooldown: 1-2 wins per 5-7 rounds.
-    // If user is in cooldown, force-crash plane at current multiplier and reject cashout.
-    const cooldownUntil = s.userCooldown[numericId] || 0;
-    if (s.roundNumber <= cooldownUntil) {
-      const elapsedC = Date.now() - s.flightStartTime;
-      const mC = Math.max(1.0, aviatorMultiplierAt(elapsedC));
-      s.crashAt = Math.min(s.crashAt, Number(mC.toFixed(2)));
-      return res.status(400).json({ error: "Plane crashed!" });
-    }
+    // NOTE: cooldown force-crash removed — if user taps cashout while phase is "flying",
+    // they always succeed. Rigging is still enforced via cumulative-budget crashAt capping below.
 
     const elapsed = Date.now() - s.flightStartTime;
     const mult = Math.min(aviatorMultiplierAt(elapsed), s.crashAt);

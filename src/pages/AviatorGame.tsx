@@ -489,7 +489,8 @@ const BetPanel = ({
       toast.success(`[${title}] Cashed out @ ${result.multiplier.toFixed(2)}x — ${formatMoney(result.winAmount, currency)}`);
       refreshBalance();
     } catch (e) {
-      toast.error((e as Error).message || "Cashout failed");
+      // Silent — no loss popup. User just sees plane fly away if too late.
+      console.warn("Cashout failed:", (e as Error).message);
     }
   };
 
