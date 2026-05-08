@@ -115,6 +115,7 @@ const AviatorGame = () => {
 
   useEffect(() => {
     if (phase === "betting") {
+      if (startAudioRef.current) { startAudioRef.current.pause(); startAudioRef.current.currentTime = 0; }
       setMultiplier(1);
       setCashedOutAt(null);
       setCountdown(5);
