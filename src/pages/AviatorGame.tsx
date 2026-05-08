@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronDown, ClipboardList, Menu, MessageCircle, Plus, Trophy, Wallet } from "lucide-react";
+import { ChevronDown, ClipboardList, Menu, MessageCircle, Plus, Trophy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useBalanceContext } from "@/contexts/BalanceContext";
 import { getTelegramUser, reportGameResult, type CurrencyType } from "@/lib/telegram";
@@ -15,8 +15,6 @@ import staticPlane from "@/assets/aviator/static-plane.png";
 import rotateBg from "@/assets/aviator/bg-rotate-old.svg";
 import xAxis from "@/assets/aviator/x-axis.png";
 import yAxis from "@/assets/aviator/y-axis.png";
-import starImg from "@/assets/aviator/star.svg";
-import starAltImg from "@/assets/aviator/star1.svg";
 
 type Phase = "betting" | "flying" | "crashed";
 
