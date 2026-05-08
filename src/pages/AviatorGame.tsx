@@ -512,7 +512,7 @@ const BetPanel = ({
       </div>
 
       <div className="grid grid-cols-7 gap-0.5">
-        {PRESETS.map((amount) => (
+        {PRESETS_BY_CURRENCY[currency].map((amount) => (
           <button
             key={`${title}-${amount}`}
             disabled={muted}
