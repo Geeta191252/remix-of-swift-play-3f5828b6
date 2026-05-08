@@ -173,19 +173,23 @@ const AviatorGame = () => {
   }, [multiplier, phase]);
 
   const sX = 4;
-  const sY = 91;
-  const c1X = 31;
-  const c1Y = 91;
-  const c2X = 50;
-  const c2Y = 62;
-  const eX = phase === "crashed" ? 112 : 88;
-  const eY = phase === "crashed" ? -10 : 17;
+  const sY = 92;
+  const c1X = 38;
+  const c1Y = 88;
+  const c2X = 62;
+  const c2Y = 50;
+  const eX = phase === "crashed" ? 110 : 90;
+  const eY = phase === "crashed" ? -8 : 14;
   const t = progress;
   const planeX = Math.pow(1 - t, 3) * sX + 3 * Math.pow(1 - t, 2) * t * c1X + 3 * (1 - t) * t * t * c2X + t * t * t * eX;
   const planeY = Math.pow(1 - t, 3) * sY + 3 * Math.pow(1 - t, 2) * t * c1Y + 3 * (1 - t) * t * t * c2Y + t * t * t * eY;
   const planeFrame = PLANE_FRAMES[Math.floor(multiplier * 8) % PLANE_FRAMES.length];
 
-  const trailPath = `M ${sX} ${sY} C ${c1X} ${c1Y}, ${c2X} ${c2Y}, ${planeX} ${planeY}`;
+  const cp1xCur = sX + (c1X - sX) * t;
+  const cp1yCur = sY + (c1Y - sY) * t;
+  const cp2xCur = sX + (c1X - sX) * t + ((c2X - c1X) * t) * t;
+  const cp2yCur = sY + (c1Y - sY) * t + ((c2Y - c1Y) * t) * t;
+  const trailPath = `M ${sX} ${sY} C ${cp1xCur} ${cp1yCur}, ${cp2xCur} ${cp2yCur}, ${planeX} ${planeY}`;
   const trailFillPath = `${trailPath} L ${planeX} 95 L ${sX} 95 Z`;
 
   const displayedBets = useMemo(() => {
@@ -311,7 +315,7 @@ const AviatorGame = () => {
                   </linearGradient>
                 </defs>
                 <path d={trailFillPath} fill="url(#aviatorFill)" />
-                <path d={trailPath} stroke="url(#aviatorStroke)" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                <path d={trailPath} stroke="url(#aviatorStroke)" strokeWidth="0.7" strokeLinecap="round" strokeLinejoin="round" fill="none" />
               </svg>
             )}
 
