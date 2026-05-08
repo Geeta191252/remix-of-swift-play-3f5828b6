@@ -172,14 +172,14 @@ const AviatorGame = () => {
     return Math.min(Math.max(Math.pow((multiplier - 1) / 2.45, 0.58), 0.055), 0.97);
   }, [multiplier, phase]);
 
-  const sX = 4;
-  const sY = 92;
-  const c1X = 34;
-  const c1Y = 91;
-  const c2X = 66;
-  const c2Y = 42;
-  const eX = 92;
-  const eY = 12;
+  const sX = 5;
+  const sY = 90;
+  const c1X = 32;
+  const c1Y = 88;
+  const c2X = 64;
+  const c2Y = 36;
+  const eX = 88;
+  const eY = 15;
   const t = progress;
   const planeX = Math.pow(1 - t, 3) * sX + 3 * Math.pow(1 - t, 2) * t * c1X + 3 * (1 - t) * t * t * c2X + t * t * t * eX;
   const planeY = Math.pow(1 - t, 3) * sY + 3 * Math.pow(1 - t, 2) * t * c1Y + 3 * (1 - t) * t * t * c2Y + t * t * t * eY;
@@ -190,7 +190,7 @@ const AviatorGame = () => {
   const cp2xCur = sX + (c1X - sX) * t + ((c2X - c1X) * t) * t;
   const cp2yCur = sY + (c1Y - sY) * t + ((c2Y - c1Y) * t) * t;
   const trailPath = `M ${sX} ${sY} C ${cp1xCur} ${cp1yCur}, ${cp2xCur} ${cp2yCur}, ${planeX} ${planeY}`;
-  const trailFillPath = `${trailPath} L ${planeX} 95 L ${sX} 95 Z`;
+  const trailFillPath = `${trailPath} L ${planeX} 94 L ${sX} 94 Z`;
 
   const displayedBets = useMemo(() => {
     const active: BetRow[] = hasBet
@@ -303,7 +303,7 @@ const AviatorGame = () => {
             <div className="absolute left-5 right-0 bottom-5 h-px bg-border/40" />
 
             {phase !== "betting" && (
-              <div className="absolute inset-x-5 bottom-5 top-4 pointer-events-none">
+              <div className="absolute left-8 right-8 bottom-8 top-7 pointer-events-none">
                 <svg className="absolute inset-0 h-full w-full" preserveAspectRatio="none" viewBox="0 0 100 100">
                   <defs>
                     <linearGradient id="aviatorStroke" x1="0" y1="1" x2="1" y2="0">
@@ -322,10 +322,10 @@ const AviatorGame = () => {
                 <motion.div
                   className="absolute z-30 pointer-events-none"
                   style={{ left: `${planeX}%`, top: `${planeY}%`, transform: "translate(-50%, -50%)" }}
-                  animate={phase === "crashed" ? { x: 90, y: -72, opacity: 0.16, scale: 0.9 } : { x: 0, y: 0, opacity: 1, scale: 1 }}
+                  animate={phase === "crashed" ? { x: 42, y: -34, opacity: 1, scale: 0.92 } : { x: 0, y: 0, opacity: 1, scale: 1 }}
                   transition={{ duration: phase === "crashed" ? 1.05 : 0.05, ease: "easeOut" }}
                 >
-                  <div className="relative h-16 w-28 sm:h-20 sm:w-36 lg:h-28 lg:w-44">
+                  <div className="relative h-16 w-28 sm:h-20 sm:w-36 lg:h-24 lg:w-40 xl:h-28 xl:w-44">
                     {PLANE_FRAMES.map((frame, index) => (
                       <img
                         key={frame}
