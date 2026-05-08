@@ -1792,10 +1792,11 @@ function makeAviatorPool() {
     phaseStartTime: Date.now(),
     crashAt: 1.0,                // set when flying begins; can be brought down dynamically
     flightStartTime: 0,
-    bets: {},                    // { telegramId: { amount, firstName, cashedOutAt, winAmount } }
+    bets: {},                    // { "telegramId:slot": { userId, amount, firstName, cashedOutAt, winAmount } }
     history: [],                 // last 18 crash multipliers
     totalPool: 0,                // sum of all bets this round
     totalPaidOut: 0,             // running sum of cashouts
+    userCooldown: {},            // { telegramId: cooldownUntilRound } — blocks wins for 4-6 rounds after a win
   };
 }
 const aviatorState = {
