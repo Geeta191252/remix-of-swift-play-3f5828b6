@@ -2080,7 +2080,9 @@ app.post("/api/aviator/cashout", async (req, res) => {
         if (safeTarget < s.crashAt) s.crashAt = safeTarget;
       }
     }
+    }
 
+    res.json({
       success: true,
       multiplier: bet.cashedOutAt,
       winAmount: win,
