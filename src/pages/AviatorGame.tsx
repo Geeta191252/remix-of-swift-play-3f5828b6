@@ -141,10 +141,21 @@ const AviatorGame = () => {
     }
   }, [phase, hasBet, cashedOutAt, multiplier, betAmount, currency, refreshBalance]);
 
-  // Plane/rocket position based on multiplier (curve)
-  const progress = Math.min((multiplier - 1) / 4, 1); // 0 to 1 over first 5x
-  const planeX = 8 + progress * 70; // %
-  const planeY = 75 - progress * 60; // % (from bottom, but using top)
+  // Plane/rocket position based on multiplier (smooth curve from bottom-left to top-right)
+  const progress = Math.min((multiplier - 1) / 5, 0.95); // 0 to 0.95
+  // Quadratic curve points (in % of arena)
+  const startX = 5, startY = 95;
+  const endX = 88, endY = 12;
+  // Control point for the curve (creates the upward arc)
+  const ctrlX = 50, ctrlY = 95;
+  // Bezier point at progress t
+  const t = progress;
+  const planeX = (1 - t) * (1 - t) * startX + 2 * (1 - t) * t * ctrlX + t * t * endX;
+  const planeY = (1 - t) * (1 - t) * startY + 2 * (1 - t) * t * ctrlY + t * t * endY;
+  // Tangent angle (derivative of bezier) for rocket rotation
+  const dx = 2 * (1 - t) * (ctrlX - startX) + 2 * t * (endX - ctrlX);
+  const dy = 2 * (1 - t) * (ctrlY - startY) + 2 * t * (endY - ctrlY);
+  const angle = Math.atan2(dy, dx) * (180 / Math.PI);
 
   const userName = tgUser?.first_name || tgUser?.username || "Player";
 
