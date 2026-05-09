@@ -6,9 +6,9 @@ import { getTelegramUser, getTelegram } from "@/lib/telegram";
 import { useBalance } from "@/hooks/useBalance";
 
 const inviteTasks = [
-  { title: "Invite 1st friend", reward: "10 ⭐", icon: "⭐", target: 1 },
-  { title: "Invite 2nd friend", reward: "10 ⭐", icon: "⭐", target: 2 },
-  { title: "Invite 3rd friend", reward: "10 ⭐", icon: "⭐", target: 3 },
+  { title: "Invite 1st friend", reward: "5 ⭐", icon: "⭐", target: 1 },
+  { title: "Invite 2nd friend", reward: "5 ⭐", icon: "⭐", target: 2 },
+  { title: "Invite 3rd friend", reward: "5 ⭐", icon: "⭐", target: 3 },
 ];
 
 const FriendsScreen = () => {
@@ -95,8 +95,8 @@ const FriendsScreen = () => {
       </div>
 
       <div className="text-xs text-muted-foreground text-center px-2 space-y-1">
-        <p>📌 Har refer par aapko 10 ⭐ milega!</p>
-        <p>📌 You will earn 10 ⭐ for every referral!</p>
+        <p>📌 Har refer par aapko 5 ⭐ milega!</p>
+        <p>📌 You will earn 5 ⭐ for every referral!</p>
         <p>⭐ Refer se milne wale Stars aapke ⭐ Star wallet mein add honge.</p>
         <p>⭐ Stars earned from referrals will be added to your ⭐ Star wallet.</p>
       </div>
