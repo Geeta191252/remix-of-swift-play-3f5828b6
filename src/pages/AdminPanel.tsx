@@ -105,6 +105,103 @@ const AdminPanel = () => {
   const [broadcastingId, setBroadcastingId] = useState<string | null>(null);
   const [deletingOfferId, setDeletingOfferId] = useState<string | null>(null);
 
+  // Tournaments state
+  const [tournaments, setTournaments] = useState<AdminTournament[]>([]);
+  const [tournamentForm, setTournamentForm] = useState({
+    title: "",
+    imageUrl: "",
+    prizeCurrency: "dollar" as "star" | "dollar",
+    tier: "50" as "50" | "100",
+    prizePerWinner: "",
+  });
+  const [creatingTournament, setCreatingTournament] = useState(false);
+  const [deletingTournamentId, setDeletingTournamentId] = useState<string | null>(null);
+  const [distributingId, setDistributingId] = useState<string | null>(null);
+
+  const fetchTournaments = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/tournaments/list`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ownerId: String(OWNER_ID) }),
+      });
+      const data = await res.json();
+      if (res.ok) setTournaments(data.tournaments || []);
+    } catch { /* ignore */ }
+  };
+
+  const handleCreateTournament = async () => {
+    const prize = parseFloat(tournamentForm.prizePerWinner);
+    if (!tournamentForm.title.trim() || isNaN(prize) || prize <= 0) {
+      toast({ title: "Invalid", description: "Title aur prize amount bharo." });
+      return;
+    }
+    setCreatingTournament(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/tournaments/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ownerId: String(OWNER_ID),
+          title: tournamentForm.title.trim(),
+          imageUrl: tournamentForm.imageUrl.trim(),
+          prizeCurrency: tournamentForm.prizeCurrency,
+          tier: Number(tournamentForm.tier),
+          prizePerWinner: prize,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed");
+      toast({ title: "Tournament created 🏆" });
+      setTournamentForm({ title: "", imageUrl: "", prizeCurrency: "dollar", tier: "50", prizePerWinner: "" });
+      fetchTournaments();
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Failed" });
+    } finally {
+      setCreatingTournament(false);
+    }
+  };
+
+  const handleDeleteTournament = async (id: string) => {
+    if (!confirm("Delete this tournament?")) return;
+    setDeletingTournamentId(id);
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/tournaments/delete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ownerId: String(OWNER_ID), tournamentId: id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed");
+      setTournaments((prev) => prev.filter((t) => t._id !== id));
+      toast({ title: "Deleted" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Failed" });
+    } finally {
+      setDeletingTournamentId(null);
+    }
+  };
+
+  const handleDistributeTournament = async (id: string) => {
+    if (!confirm("Distribute prizes to top winners now? (tournament closes)")) return;
+    setDistributingId(id);
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/tournaments/distribute`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ownerId: String(OWNER_ID), tournamentId: id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed");
+      toast({ title: "Distributed 🎉", description: `Credited ${data.credited} winners` });
+      fetchTournaments();
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Failed" });
+    } finally {
+      setDistributingId(null);
+    }
+  };
+
   // Aviator profit %
   const [aviatorProfit, setAviatorProfit] = useState<number>(50);
   const [aviatorProfitInput, setAviatorProfitInput] = useState<string>("50");
