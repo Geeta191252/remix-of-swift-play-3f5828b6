@@ -81,6 +81,42 @@ const pickRiggedBucket = (lines: number, risk: Risk): number => {
   return Math.floor(lines / 2);
 };
 
+// Pick a losing bucket (multiplier < 1). Prefer ~0.4–0.7 range.
+const pickLosingBucket = (multipliers: number[]): number => {
+  const losers: number[] = [];
+  for (let i = 0; i < multipliers.length; i++) {
+    if (multipliers[i] < 1) losers.push(i);
+  }
+  if (losers.length === 0) {
+    // fallback: smallest multiplier index
+    let minI = 0;
+    for (let i = 1; i < multipliers.length; i++) {
+      if (multipliers[i] < multipliers[minI]) minI = i;
+    }
+    return minI;
+  }
+  // Prefer values within 0.3..0.8 if any
+  const preferred = losers.filter((i) => multipliers[i] >= 0.3 && multipliers[i] <= 0.8);
+  const pool = preferred.length > 0 ? preferred : losers;
+  return pool[Math.floor(Math.random() * pool.length)];
+};
+
+// Pick the bucket whose multiplier is closest to a target (e.g. 2x).
+const pickBucketNearMultiplier = (multipliers: number[], target: number): number => {
+  let bestI = 0;
+  let bestDiff = Infinity;
+  for (let i = 0; i < multipliers.length; i++) {
+    const m = multipliers[i];
+    if (m < 1) continue; // must be a win
+    const diff = Math.abs(m - target);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      bestI = i;
+    }
+  }
+  return bestI;
+};
+
 const buildPath = (targetBucket: number, lines: number): boolean[] => {
   const rights = Math.max(0, Math.min(lines, targetBucket));
   const moves: boolean[] = [];
@@ -129,6 +165,7 @@ const PlinkoGame = () => {
   const [highlightBucket, setHighlightBucket] = useState<number | null>(null);
   const [lastWin, setLastWin] = useState<number | null>(null);
   const [lastMult, setLastMult] = useState<number | null>(null);
+  const betCounterRef = useRef(0);
 
   const multipliers = useMemo(() => MULTIPLIER_TABLE[risk][lines], [risk, lines]);
   const currentBalance = activeWallet === "dollar" ? gameDollarBalance : gameStarBalance;
@@ -167,7 +204,12 @@ const PlinkoGame = () => {
     else setLocalStarAdj((p) => p - bet);
     if (soundRef.current) playBetSound();
 
-    const target = pickRiggedBucket(lines, risk);
+    // Rigging: 9 losses (~0.4x–0.7x) then every 10th bet a ~2x win
+    betCounterRef.current += 1;
+    const isWinTurn = betCounterRef.current % 10 === 0;
+    const target = isWinTurn
+      ? pickBucketNearMultiplier(multipliers, 2)
+      : pickLosingBucket(multipliers);
     const moves = buildPath(target, lines);
     const path = computePath(moves);
 
