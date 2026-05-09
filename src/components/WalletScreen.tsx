@@ -730,15 +730,14 @@ const WalletScreen = () => {
 
       {/* Transactions */}
       <div>
-        <h3 className="font-semibold text-foreground text-sm mb-3">Recent Transactions</h3>
-        <div className="space-y-2">
+        <h3 className="font-semibold text-foreground text-xs mb-2">Recent Transactions</h3>
+        <div className="space-y-1.5">
         {transactions.map((tx: any, i: number) => {
             const isCancelled = tx.status === "failed" || tx.status === "refunded";
             const isPositive = !isCancelled && (tx.type === "win" || tx.type === "bonus" || tx.type === "deposit" || tx.type === "ton_deposit" || tx.type === "referral");
             const isTonTx = tx.type === "ton_deposit" || tx.type === "ton_withdraw";
             const isStarTx = tx.currency === "star";
             const currencySymbol = isStarTx ? "⭐" : "$";
-            // For TON transactions, show USD equivalent; for star show star amount
             const displayValue = isTonTx && tx.usdEquivalent
               ? Number(tx.usdEquivalent).toFixed(2)
               : String(tx.amount).replace(/^[+-]/, "");
@@ -757,24 +756,24 @@ const WalletScreen = () => {
                 initial={{ opacity: 0, x: -16 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.06 }}
-                className="flex items-center gap-3 bg-card border border-border rounded-2xl p-3"
+                className="flex items-center gap-2 bg-card border border-border rounded-xl p-2"
               >
-                <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${iconColor}`}>
+                <div className={`h-7 w-7 rounded-lg flex items-center justify-center ${iconColor}`}>
                   {isCancelled ? (
-                    <span className="text-yellow-500 text-xs font-bold">✕</span>
+                    <span className="text-yellow-500 text-[10px] font-bold">✕</span>
                   ) : isPositive ? (
-                    <ArrowDownLeft className="h-4 w-4 text-green-500" />
+                    <ArrowDownLeft className="h-3.5 w-3.5 text-green-500" />
                   ) : (
-                    <ArrowUpRight className="h-4 w-4 text-red-500" />
+                    <ArrowUpRight className="h-3.5 w-3.5 text-red-500" />
                   )}
                 </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold text-sm text-foreground">
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-xs text-foreground truncate">
                     {isCancelled ? `Cancelled: ${tx.description || tx.type}` : (tx.game || tx.description || tx.type)}
                   </h4>
-                  <p className="text-xs text-muted-foreground">{timeDisplay}</p>
+                  <p className="text-[10px] text-muted-foreground">{timeDisplay}</p>
                 </div>
-                <span className={`text-sm font-bold ${textColor}`}>
+                <span className={`text-xs font-bold ${textColor}`}>
                   {currencySymbol} {isCancelled ? "Cancel" : displayAmount}
                 </span>
               </motion.div>
