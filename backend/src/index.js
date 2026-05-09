@@ -57,6 +57,48 @@ async function getOrCreateUser(telegramUserId) {
   return user;
 }
 
+// Credit pending referral reward to referrer when this user makes their first deposit.
+// Idempotent: only fires once via the referralRewarded flag.
+async function creditReferralOnDeposit(depositorTelegramId) {
+  try {
+    const numericId = Number(depositorTelegramId);
+    if (!numericId) return;
+    const depositor = await User.findOne({ telegramId: numericId });
+    if (!depositor) return;
+    if (!depositor.referredBy || depositor.referralRewarded) return;
+
+    const referrer = await User.findOne({ telegramId: depositor.referredBy });
+    if (!referrer) return;
+
+    const reward = 5;
+    referrer.starBalance = (referrer.starBalance || 0) + reward;
+    await referrer.save();
+
+    depositor.referralRewarded = true;
+    await depositor.save();
+
+    await Transaction.create({
+      telegramId: referrer.telegramId,
+      type: "referral",
+      currency: "star",
+      amount: reward,
+      status: "completed",
+      description: `Referral reward: ${reward} ⭐ (referred user ${numericId} made first deposit)`,
+    });
+
+    try {
+      await bot.sendMessage(referrer.telegramId,
+        `🎉 *Referral Reward Unlocked!*\n\n` +
+        `👤 Your referred friend just made their first deposit.\n` +
+        `💰 You earned ${reward} ⭐!`,
+        { parse_mode: "Markdown" }
+      );
+    } catch (e) { /* ignore */ }
+  } catch (err) {
+    console.error("creditReferralOnDeposit error:", err.message);
+  }
+}
+
 // ============================================
 // POST /api/deposit
 // Creates a Telegram Stars invoice for deposit
