@@ -427,7 +427,7 @@ const AdminPanel = () => {
   };
 
   useEffect(() => {
-    if (isOwner) { fetchAll(); fetchAviatorProfit(); fetchManualQueue("dollar"); fetchOffers(); fetchTournaments(); }
+    if (isOwner) { fetchAll(); fetchAviatorProfit(); fetchManualQueue("dollar"); fetchOffers(); fetchTournaments(); fetchGameStats(); }
   }, []);
 
   const handleAdjust = async () => {
