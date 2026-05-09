@@ -450,33 +450,67 @@ const PlinkoGame = () => {
             )}
           </AnimatePresence>
 
-          {/* Buckets */}
-          <div className="absolute left-0 right-0" style={{ bottom: 0, height: "10%" }}>
-            <div className="flex w-full h-full px-[2%]">
+          {/* Buckets — drum style with multiplier label below */}
+          <div className="absolute left-0 right-0" style={{ bottom: 0, height: "14%" }}>
+            <div className="flex w-full h-full px-[2%] items-end">
               {multipliers.map((m, i) => {
                 const isHit = highlightBucket === i;
+                // Vibrant drum palette cycling per bucket
+                const palette = [
+                  ["hsl(35 100% 55%)", "hsl(20 95% 45%)"],   // orange
+                  ["hsl(0 90% 55%)", "hsl(350 85% 42%)"],    // red
+                  ["hsl(285 75% 55%)", "hsl(265 70% 42%)"],  // purple
+                  ["hsl(320 85% 55%)", "hsl(300 75% 42%)"],  // magenta
+                ];
+                // Symmetric: distance from center determines color tier
+                const center = (multipliers.length - 1) / 2;
+                const tier = Math.min(palette.length - 1, Math.round(Math.abs(i - center)));
+                const [c1, c2] = palette[tier];
                 return (
                   <motion.div
                     key={i}
-                    animate={isHit ? { scale: [1, 1.25, 1], y: [0, -4, 0] } : {}}
+                    animate={isHit ? { scale: [1, 1.25, 1], y: [0, -6, 0] } : {}}
                     transition={{ duration: 0.5, repeat: isHit ? 2 : 0 }}
-                    className="flex-1 mx-[1px] rounded-t-md flex items-end justify-center pb-0.5 relative"
-                    style={{
-                      background: bucketColor(m),
-                      border: isHit
-                        ? "1.5px solid hsl(45 100% 70%)"
-                        : "1px solid hsla(0,0%,100%,0.15)",
-                      boxShadow: isHit
-                        ? "0 0 12px hsla(45,95%,60%,0.9), inset 0 0 8px hsla(45,95%,60%,0.5)"
-                        : "inset 0 -4px 8px hsla(0,0%,0%,0.3)",
-                    }}
+                    className="flex-1 mx-[1px] flex flex-col items-center justify-end relative"
                   >
-                    <span
-                      className="font-black leading-none"
+                    {/* Drum body */}
+                    <div
+                      className="w-full"
                       style={{
-                        color: "hsl(0 0% 100%)",
-                        textShadow: "0 1px 2px hsla(0,0%,0%,0.6)",
-                        fontSize: lines >= 14 ? 7 : lines >= 11 ? 8 : 9,
+                        height: "62%",
+                        borderTopLeftRadius: 6,
+                        borderTopRightRadius: 6,
+                        borderBottomLeftRadius: 3,
+                        borderBottomRightRadius: 3,
+                        background: `linear-gradient(180deg, ${c1} 0%, ${c2} 100%)`,
+                        border: isHit
+                          ? "1.5px solid hsl(45 100% 70%)"
+                          : "1px solid hsla(0,0%,0%,0.35)",
+                        boxShadow: isHit
+                          ? "0 0 12px hsla(45,95%,60%,0.9), inset 0 -4px 6px hsla(0,0%,0%,0.35)"
+                          : "inset 0 -4px 6px hsla(0,0%,0%,0.45), inset 0 2px 3px hsla(0,0%,100%,0.35), 0 2px 3px hsla(0,0%,0%,0.4)",
+                        position: "relative",
+                      }}
+                    >
+                      {/* Drum top highlight ring */}
+                      <div
+                        className="absolute left-0 right-0"
+                        style={{
+                          top: 1,
+                          height: 4,
+                          borderRadius: "50%",
+                          background:
+                            "linear-gradient(180deg, hsla(0,0%,100%,0.5), hsla(0,0%,100%,0))",
+                        }}
+                      />
+                    </div>
+                    {/* Multiplier label below */}
+                    <span
+                      className="font-black leading-none mt-0.5"
+                      style={{
+                        color: "hsl(45 95% 70%)",
+                        textShadow: "0 1px 2px hsla(0,0%,0%,0.8)",
+                        fontSize: lines >= 14 ? 7 : lines >= 11 ? 8 : 10,
                       }}
                     >
                       {m}x
