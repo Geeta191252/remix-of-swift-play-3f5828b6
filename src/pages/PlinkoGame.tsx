@@ -706,7 +706,6 @@ const PlinkoGame = () => {
                 <span style={{ color: "hsl(50 100% 55%)", fontSize: 13, lineHeight: 1 }}>★</span>
               </button>
             </div>
-            </div>
             <div className="text-[10px] font-bold mb-1" style={{ color: "hsl(45 90% 65%)" }}>
               BET AMOUNT
             </div>
