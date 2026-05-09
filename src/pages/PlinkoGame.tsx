@@ -132,8 +132,8 @@ const PlinkoGame = () => {
   const currentBalance = activeWallet === "dollar" ? gameDollarBalance : gameStarBalance;
 
   // Geometry
-  const PEG_TOP = 4;
-  const PEG_BOTTOM = 82;
+  const PEG_TOP = 12;
+  const PEG_BOTTOM = 84;
   // Board geometry: pegs are centered row-by-row and the bottom row spans
   // the same 2%–98% width used by the multiplier buckets.
   const BOARD_SIDE_INSET = 2;
@@ -141,13 +141,6 @@ const PlinkoGame = () => {
   const BUCKET_WIDTH = useMemo(() => PLAY_WIDTH / (lines + 1), [lines]);
   const PEG_GAP = BUCKET_WIDTH;
   const BALL_STEP_X = BUCKET_WIDTH / 2;
-  const PEG_SIDE_INSET = 5;
-  const PEG_COLUMN_COUNT = useMemo(() => Math.min(9, Math.ceil((lines + 2) / 2)), [lines]);
-  const PEG_COLUMN_GAP = useMemo(
-    () => (100 - PEG_SIDE_INSET * 2) / Math.max(1, PEG_COLUMN_COUNT - 1),
-    [PEG_COLUMN_COUNT]
-  );
-  const TOP_PEG_COUNT = useMemo(() => Math.max(3, PEG_COLUMN_COUNT - 5), [PEG_COLUMN_COUNT]);
 
   const computePath = useCallback((moves: boolean[]) => {
     const points: { x: number; y: number }[] = [];
