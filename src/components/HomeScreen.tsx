@@ -86,6 +86,12 @@ const HomeScreen = () => {
   const [filter, setFilter] = useState<FilterTab>("all");
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [openTournament, setOpenTournament] = useState<Tournament | null>(null);
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/tournaments/active`)
@@ -93,6 +99,18 @@ const HomeScreen = () => {
       .then((d) => setTournaments(d.tournaments || []))
       .catch(() => {});
   }, []);
+
+  const formatRemaining = (ms: number) => {
+    if (ms <= 0) return "Ended";
+    const s = Math.floor(ms / 1000);
+    const d = Math.floor(s / 86400);
+    const h = Math.floor((s % 86400) / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    if (d > 0) return `${d}d ${h}h ${m}m`;
+    if (h > 0) return `${h}h ${m}m ${sec}s`;
+    return `${m}m ${sec}s`;
+  };
 
   const goToGreedyKing = () => navigate("/greedy-king");
   const goToDiceMaster = () => navigate("/dice-master");
