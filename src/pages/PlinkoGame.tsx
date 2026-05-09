@@ -451,7 +451,7 @@ const PlinkoGame = () => {
                     key={i}
                     animate={isHit ? { scale: [1, 1.25, 1], y: [0, -6, 0] } : {}}
                     transition={{ duration: 0.5, repeat: isHit ? 2 : 0 }}
-                    className="flex-1 mx-[1px] flex flex-col items-center justify-end relative"
+                    className="flex-1 mx-[1px] h-full flex flex-col items-center justify-end relative"
                   >
                     {/* Drum body */}
                     <div
