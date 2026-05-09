@@ -48,7 +48,17 @@ interface WithdrawalRequest {
   withdrawalNetwork?: string;
 }
 
-type Tab = "stats" | "users" | "withdrawals" | "offers" | "tournaments";
+type Tab = "stats" | "users" | "withdrawals" | "offers" | "tournaments" | "games";
+
+interface GameStat {
+  game: string;
+  dollarWin: number;
+  starWin: number;
+  dollarLoss: number;
+  starLoss: number;
+  winCount: number;
+  betCount: number;
+}
 
 interface PrizeTier { fromRank: number; toRank: number; amount: number; }
 interface AdminTournament {
