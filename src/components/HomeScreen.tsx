@@ -133,7 +133,7 @@ const HomeScreen = () => {
       </div>
 
       {/* Top Bar */}
-      <div className="sticky top-0 z-30 px-3 py-3 flex items-center justify-between" style={{
+      <div className="sticky top-0 z-30 px-2 py-1.5 flex items-center justify-between gap-1.5" style={{
         background: "linear-gradient(135deg, hsla(265, 55%, 25%, 0.95) 0%, hsla(280, 50%, 22%, 0.95) 100%)",
         borderBottom: "1px solid hsla(45, 80%, 55%, 0.15)",
         backdropFilter: "blur(20px)",
