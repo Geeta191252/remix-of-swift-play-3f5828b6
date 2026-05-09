@@ -133,7 +133,7 @@ const PlinkoGame = () => {
 
   // Geometry
   const PEG_TOP = 4;
-  const PEG_BOTTOM = 88;
+  const PEG_BOTTOM = 82;
   // Adapt horizontal spacing based on lines so the bottom row fits
   // Match peg gap to bucket width so bottom-row pegs align with bucket dividers.
   // Buckets occupy ~96% of board (px-[2%]) split into (lines+1) buckets.
