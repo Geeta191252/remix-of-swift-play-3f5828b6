@@ -133,7 +133,7 @@ const PlinkoGame = () => {
 
   // Geometry
   const PEG_TOP = 4;
-  const PEG_BOTTOM = 88;
+  const PEG_BOTTOM = 82;
   // Adapt horizontal spacing based on lines so the bottom row fits
   // Match peg gap to bucket width so bottom-row pegs align with bucket dividers.
   // Buckets occupy ~96% of board (px-[2%]) split into (lines+1) buckets.
@@ -244,9 +244,18 @@ const PlinkoGame = () => {
       className="min-h-screen flex flex-col overflow-hidden relative"
       style={{
         background:
-          "radial-gradient(ellipse at top, hsl(265 70% 25%) 0%, hsl(260 75% 12%) 70%, hsl(255 80% 6%) 100%)",
+          "radial-gradient(ellipse at top, hsl(230 80% 35%) 0%, hsl(245 85% 18%) 55%, hsl(255 90% 8%) 100%)",
       }}
     >
+      {/* Light rays from top */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-40"
+        style={{
+          background:
+            "conic-gradient(from 250deg at 50% 0%, transparent 0deg, hsla(210,90%,75%,0.25) 25deg, transparent 50deg, hsla(210,90%,75%,0.25) 75deg, transparent 100deg, hsla(210,90%,75%,0.25) 130deg, transparent 160deg)",
+        }}
+      />
+
       {/* Top bar */}
       <div className="flex items-center justify-between px-3 py-2 z-10">
         <button
@@ -290,36 +299,58 @@ const PlinkoGame = () => {
         </div>
       </div>
 
-      {/* Plinko Logo */}
-      <div className="relative flex items-center justify-center pt-1 pb-2">
-        <motion.div
-          animate={{ scale: [1, 1.05, 1] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="text-center"
-        >
-          <h1
-            className="font-black text-3xl tracking-wider"
-            style={{
-              background:
-                "linear-gradient(135deg, hsl(45 100% 65%), hsl(15 95% 55%), hsl(0 90% 55%))",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              filter: "drop-shadow(0 0 10px hsla(45,90%,55%,0.6))",
-              fontFamily: "'Fredoka','Comic Sans MS',cursive",
-            }}
-          >
-            🎪 Plinko
-          </h1>
-        </motion.div>
+      {/* Plinko Logo + Tent */}
+      <div className="relative flex items-center justify-center pt-2 pb-3 z-10">
+        {/* Tent stripes behind */}
         <div
-          className="absolute top-0 left-0 right-0 h-16 -z-0 opacity-60 pointer-events-none"
+          className="absolute top-0 left-0 right-0 h-20 pointer-events-none"
           style={{
             background:
-              "repeating-linear-gradient(90deg, hsl(0 75% 50%) 0 16px, hsl(0 0% 100%) 16px 32px)",
-            clipPath: "polygon(0 0, 100% 0, 95% 60%, 50% 100%, 5% 60%)",
-            opacity: 0.18,
+              "repeating-linear-gradient(90deg, hsl(0 80% 50%) 0 18px, hsl(0 0% 98%) 18px 36px)",
+            clipPath: "polygon(0 60%, 8% 30%, 20% 55%, 32% 25%, 44% 55%, 56% 25%, 68% 55%, 80% 25%, 92% 55%, 100% 30%, 100% 100%, 0 100%)",
+            opacity: 0.85,
+            filter: "drop-shadow(0 4px 6px hsla(0,0%,0%,0.4))",
           }}
         />
+        {/* Flag bunting */}
+        <div className="absolute top-[68px] left-2 right-2 flex justify-between pointer-events-none">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <div
+              key={i}
+              style={{
+                width: 0,
+                height: 0,
+                borderLeft: "6px solid transparent",
+                borderRight: "6px solid transparent",
+                borderTop: `10px solid ${
+                  ["hsl(45 95% 55%)", "hsl(0 80% 55%)", "hsl(200 85% 55%)", "hsl(140 70% 50%)"][i % 4]
+                }`,
+                filter: "drop-shadow(0 2px 2px hsla(0,0%,0%,0.4))",
+              }}
+            />
+          ))}
+        </div>
+
+        <motion.div
+          animate={{ scale: [1, 1.04, 1] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="relative z-10"
+        >
+          <h1
+            className="font-black text-4xl tracking-wider"
+            style={{
+              background:
+                "linear-gradient(180deg, hsl(50 100% 65%) 0%, hsl(35 100% 55%) 45%, hsl(15 95% 50%) 55%, hsl(0 90% 45%) 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              filter: "drop-shadow(0 2px 0 hsl(0 0% 0%)) drop-shadow(0 0 12px hsla(45,95%,55%,0.7))",
+              fontFamily: "'Fredoka','Comic Sans MS',cursive",
+              WebkitTextStroke: "1.5px hsl(0 0% 0%)",
+            }}
+          >
+            Plinko
+          </h1>
+        </motion.div>
       </div>
 
       {/* Lines selector */}
@@ -419,33 +450,67 @@ const PlinkoGame = () => {
             )}
           </AnimatePresence>
 
-          {/* Buckets */}
-          <div className="absolute left-0 right-0" style={{ bottom: 0, height: "10%" }}>
-            <div className="flex w-full h-full px-[2%]">
+          {/* Buckets — drum style with multiplier label below */}
+          <div className="absolute left-0 right-0" style={{ bottom: 0, height: "14%" }}>
+            <div className="flex w-full h-full px-[2%] items-end">
               {multipliers.map((m, i) => {
                 const isHit = highlightBucket === i;
+                // Vibrant drum palette cycling per bucket
+                const palette = [
+                  ["hsl(35 100% 55%)", "hsl(20 95% 45%)"],   // orange
+                  ["hsl(0 90% 55%)", "hsl(350 85% 42%)"],    // red
+                  ["hsl(285 75% 55%)", "hsl(265 70% 42%)"],  // purple
+                  ["hsl(320 85% 55%)", "hsl(300 75% 42%)"],  // magenta
+                ];
+                // Symmetric: distance from center determines color tier
+                const center = (multipliers.length - 1) / 2;
+                const tier = Math.min(palette.length - 1, Math.round(Math.abs(i - center)));
+                const [c1, c2] = palette[tier];
                 return (
                   <motion.div
                     key={i}
-                    animate={isHit ? { scale: [1, 1.25, 1], y: [0, -4, 0] } : {}}
+                    animate={isHit ? { scale: [1, 1.25, 1], y: [0, -6, 0] } : {}}
                     transition={{ duration: 0.5, repeat: isHit ? 2 : 0 }}
-                    className="flex-1 mx-[1px] rounded-t-md flex items-end justify-center pb-0.5 relative"
-                    style={{
-                      background: bucketColor(m),
-                      border: isHit
-                        ? "1.5px solid hsl(45 100% 70%)"
-                        : "1px solid hsla(0,0%,100%,0.15)",
-                      boxShadow: isHit
-                        ? "0 0 12px hsla(45,95%,60%,0.9), inset 0 0 8px hsla(45,95%,60%,0.5)"
-                        : "inset 0 -4px 8px hsla(0,0%,0%,0.3)",
-                    }}
+                    className="flex-1 mx-[1px] flex flex-col items-center justify-end relative"
                   >
-                    <span
-                      className="font-black leading-none"
+                    {/* Drum body */}
+                    <div
+                      className="w-full"
                       style={{
-                        color: "hsl(0 0% 100%)",
-                        textShadow: "0 1px 2px hsla(0,0%,0%,0.6)",
-                        fontSize: lines >= 14 ? 7 : lines >= 11 ? 8 : 9,
+                        height: "62%",
+                        borderTopLeftRadius: 6,
+                        borderTopRightRadius: 6,
+                        borderBottomLeftRadius: 3,
+                        borderBottomRightRadius: 3,
+                        background: `linear-gradient(180deg, ${c1} 0%, ${c2} 100%)`,
+                        border: isHit
+                          ? "1.5px solid hsl(45 100% 70%)"
+                          : "1px solid hsla(0,0%,0%,0.35)",
+                        boxShadow: isHit
+                          ? "0 0 12px hsla(45,95%,60%,0.9), inset 0 -4px 6px hsla(0,0%,0%,0.35)"
+                          : "inset 0 -4px 6px hsla(0,0%,0%,0.45), inset 0 2px 3px hsla(0,0%,100%,0.35), 0 2px 3px hsla(0,0%,0%,0.4)",
+                        position: "relative",
+                      }}
+                    >
+                      {/* Drum top highlight ring */}
+                      <div
+                        className="absolute left-0 right-0"
+                        style={{
+                          top: 1,
+                          height: 4,
+                          borderRadius: "50%",
+                          background:
+                            "linear-gradient(180deg, hsla(0,0%,100%,0.5), hsla(0,0%,100%,0))",
+                        }}
+                      />
+                    </div>
+                    {/* Multiplier label below */}
+                    <span
+                      className="font-black leading-none mt-0.5"
+                      style={{
+                        color: "hsl(45 95% 70%)",
+                        textShadow: "0 1px 2px hsla(0,0%,0%,0.8)",
+                        fontSize: lines >= 14 ? 7 : lines >= 11 ? 8 : 10,
                       }}
                     >
                       {m}x
