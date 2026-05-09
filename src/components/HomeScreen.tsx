@@ -263,7 +263,105 @@ const HomeScreen = () => {
                 </motion.div>
               </motion.div>
 
+              {/* Filter chips */}
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
+                {([
+                  { key: "all", label: "All", emoji: "🎮" },
+                  { key: "tournament", label: "Tournament", emoji: "🏆" },
+                  { key: "wheel", label: "Wheel", emoji: "🎡" },
+                  { key: "crash", label: "Crash", emoji: "🚀" },
+                  { key: "slots", label: "Slots", emoji: "🎰" },
+                ] as { key: FilterTab; label: string; emoji: string }[]).map((c) => {
+                  const active = filter === c.key;
+                  return (
+                    <motion.button
+                      key={c.key}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={() => setFilter(c.key)}
+                      className="flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold whitespace-nowrap shrink-0 transition-all"
+                      style={{
+                        background: active
+                          ? "linear-gradient(135deg, hsl(280 75% 55%), hsl(310 70% 50%))"
+                          : "hsla(260, 40%, 25%, 0.6)",
+                        color: active ? "hsl(0 0% 100%)" : "hsl(260 30% 75%)",
+                        border: active
+                          ? "1px solid hsla(45, 80%, 55%, 0.5)"
+                          : "1px solid hsla(260, 40%, 40%, 0.3)",
+                        boxShadow: active ? "0 4px 14px hsla(280, 70%, 50%, 0.4)" : "none",
+                      }}
+                    >
+                      <span>{c.emoji}</span>{c.label}
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              {/* Tournament Section */}
+              {(filter === "all" || filter === "tournament") && (
+                <section>
+                  <div className="flex items-center justify-between mb-3">
+                    <motion.h2 initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="font-game text-lg flex items-center gap-2">
+                      <Trophy className="h-5 w-5" style={{ color: "hsl(45 95% 60%)" }} />
+                      <span style={{
+                        background: "linear-gradient(135deg, hsl(45 95% 65%), hsl(280 70% 60%))",
+                        WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                      }}>Tournament</span>
+                    </motion.h2>
+                  </div>
+                  {tournaments.length === 0 ? (
+                    <div className="rounded-2xl p-4 text-center text-xs" style={{
+                      background: "hsla(260,40%,25%,0.4)", border: "1px dashed hsla(45,80%,55%,0.25)", color: "hsl(260 30% 70%)"
+                    }}>
+                      Koi tournament active nahi. Jaldi aane wale hain! 🏆
+                    </div>
+                  ) : (
+                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                      {tournaments.map((t) => {
+                        const sym = t.prizeCurrency === "dollar" ? "$" : "⭐";
+                        return (
+                          <motion.div
+                            key={t._id}
+                            whileTap={{ scale: 0.95 }}
+                            whileHover={{ scale: 1.03 }}
+                            onClick={() => setOpenTournament(t)}
+                            className="cursor-pointer flex-shrink-0 w-[200px] rounded-2xl overflow-hidden relative"
+                            style={{
+                              background: "linear-gradient(180deg, hsla(280,70%,30%,0.6), hsla(260,60%,15%,0.8))",
+                              border: "1.5px solid hsla(45,80%,55%,0.4)",
+                              boxShadow: "0 8px 24px hsla(280,60%,30%,0.4)",
+                            }}
+                          >
+                            <div className="aspect-[16/10] relative overflow-hidden">
+                              {t.imageUrl ? (
+                                <img src={t.imageUrl} alt={t.title} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center" style={{
+                                  background: "linear-gradient(135deg, hsl(280 60% 35%), hsl(45 70% 45%))"
+                                }}>
+                                  <Trophy className="h-12 w-12" style={{ color: "hsl(45 95% 70%)" }} />
+                                </div>
+                              )}
+                              <div className="absolute top-1.5 right-1.5 px-2 py-0.5 rounded-full text-[10px] font-black" style={{
+                                background: "linear-gradient(135deg, hsl(0 80% 50%), hsl(25 80% 45%))",
+                                color: "white",
+                              }}>TOP {t.tier}</div>
+                            </div>
+                            <div className="p-2.5">
+                              <p className="text-xs font-bold truncate" style={{ color: "hsl(0 0% 95%)" }}>{t.title}</p>
+                              <p className="text-[11px] mt-0.5" style={{ color: "hsl(45 90% 65%)" }}>
+                                Prize: <span className="font-black">{sym}{t.prizePerWinner}</span> each
+                              </p>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+              )}
+
               {/* Wheel Category */}
+              {(filter === "all" || filter === "wheel") && (
               <section>
                 <div className="flex items-center justify-between mb-3">
                   <motion.h2
