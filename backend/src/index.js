@@ -19,6 +19,7 @@ const PORT = process.env.PORT || 8000;
 app.use(cors());
 // Capture raw body for IPN signature verification
 app.use(express.json({
+  limit: "10mb",
   verify: (req, res, buf) => {
     if (req.url === '/api/crypto/ipn') {
       req.rawBody = buf.toString('utf8');
