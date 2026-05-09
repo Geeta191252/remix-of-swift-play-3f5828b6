@@ -56,6 +56,14 @@ const MarketScreen = ({ onGoToWallet }: MarketScreenProps) => {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [offers, setOffers] = useState<BackendOffer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [coinPickerOffer, setCoinPickerOffer] = useState<BackendOffer | null>(null);
+  const [cryptoPayment, setCryptoPayment] = useState<{
+    payAddress: string;
+    payAmount: number;
+    payCurrency: string;
+    orderId: string;
+    offerLabel: string;
+  } | null>(null);
 
   useEffect(() => {
     (async () => {
