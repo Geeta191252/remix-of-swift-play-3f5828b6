@@ -1240,6 +1240,9 @@ app.post("/api/telegram-webhook", async (req, res) => {
       });
 
       console.log(`✅ Payment received: ${amount} ${currency} for user ${userId}`);
+
+      // Unlock pending referral reward (if any) on first successful deposit
+      await creditReferralOnDeposit(userId);
     }
 
     // Handle pre-checkout query
@@ -1621,6 +1624,9 @@ app.post("/api/crypto/ipn", async (req, res) => {
       await user.save();
 
       console.log(`✅ Crypto deposit completed: $${tx.amount} for user ${tx.telegramId}`);
+
+      // Unlock pending referral reward (if any) on first successful deposit
+      await creditReferralOnDeposit(tx.telegramId);
 
       // Notify user via Telegram bot
       try {
