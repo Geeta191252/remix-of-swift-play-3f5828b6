@@ -394,12 +394,12 @@ const PlinkoGame = () => {
                       className="absolute rounded-full"
                       style={{
                         left: `${x}%`,
-                        width: 5,
-                        height: 5,
+                        width: 8,
+                        height: 8,
                         transform: "translate(-50%, -50%)",
                         background:
-                          "radial-gradient(circle, hsl(45 100% 70%), hsl(35 95% 55%))",
-                        boxShadow: "0 0 4px hsla(45, 95%, 60%, 0.9)",
+                          "radial-gradient(circle at 30% 30%, hsl(50 100% 80%), hsl(40 100% 60%) 55%, hsl(30 95% 45%))",
+                        boxShadow: "0 0 6px hsla(45, 100%, 65%, 0.95), 0 1px 2px hsla(0,0%,0%,0.5)",
                       }}
                     />
                   );
