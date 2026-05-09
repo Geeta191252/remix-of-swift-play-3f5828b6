@@ -34,9 +34,26 @@ interface Props {
   onClose: () => void;
 }
 
+function formatRemaining(ms: number) {
+  if (ms <= 0) return "Ended";
+  const s = Math.floor(ms / 1000);
+  const d = Math.floor(s / 86400);
+  const h = Math.floor((s % 86400) / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (d > 0) return `${d}d ${h}h ${m}m ${sec}s`;
+  return `${h}h ${m}m ${sec}s`;
+}
+
 const TournamentLeaderboard = ({ tournament, onClose }: Props) => {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -52,6 +69,7 @@ const TournamentLeaderboard = ({ tournament, onClose }: Props) => {
   }, [tournament._id]);
 
   const sym = tournament.prizeCurrency === "dollar" ? "$" : "⭐";
+  const remainingMs = tournament.endsAt ? new Date(tournament.endsAt).getTime() - now : 0;
 
   return (
     <motion.div
