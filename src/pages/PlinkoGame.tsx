@@ -135,11 +135,10 @@ const PlinkoGame = () => {
   const PEG_TOP = 4;
   const PEG_BOTTOM = 88;
   // Adapt horizontal spacing based on lines so the bottom row fits
-  const HORIZONTAL_SPACING = useMemo(() => {
-    // bottom row peg count = lines + 2; total span = (lines+1) * (sp/2)
-    // want span <= 92% of board, so sp <= 184 / (lines+1)
-    return Math.min(5, 184 / (lines + 1));
-  }, [lines]);
+  // Match peg gap to bucket width so bottom-row pegs align with bucket dividers.
+  // Buckets occupy ~96% of board (px-[2%]) split into (lines+1) buckets.
+  // Each bucket width = 96/(lines+1)%. Peg gap (SP/2) must equal bucket width.
+  const HORIZONTAL_SPACING = useMemo(() => 192 / (lines + 1), [lines]);
 
   const computePath = useCallback((moves: boolean[]) => {
     const points: { x: number; y: number }[] = [];
