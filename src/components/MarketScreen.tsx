@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Clock, Sparkles } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { initiatePayment, getTelegram } from "@/lib/telegram";
+import { initiatePayment, getTelegram, requestInvoice } from "@/lib/telegram";
 import { useBalanceContext } from "@/contexts/BalanceContext";
 import { useEffect, useState } from "react";
 
@@ -63,13 +63,21 @@ const MarketScreen = ({ onGoToWallet }: MarketScreenProps) => {
   const claimStarOffer = async (offer: BackendOffer) => {
     setBusyId(offer._id);
     try {
-      await initiatePayment("deposit", "star", offer.payAmount, (status) => {
-        setBusyId(null);
+      const tg = getTelegram();
+      if (!tg) {
+        throw new Error("Please open this app inside Telegram to make payments.");
+      }
+      const invoiceUrl = await requestInvoice("deposit", "star", offer.payAmount);
+      // Clear busy immediately so the button is responsive while invoice is open
+      setBusyId(null);
+      tg.openInvoice(invoiceUrl, (status) => {
         if (status === "paid") {
           toast({ title: "Offer paid! 🎁", description: `${offer.bonusLabel || "Bonus"} will be credited by admin shortly.` });
           refreshBalance();
         } else if (status === "cancelled") {
           toast({ title: "Cancelled", description: "Offer payment cancelled." });
+        } else if (status === "failed") {
+          toast({ title: "Payment failed", description: "Please try again.", variant: "destructive" });
         }
       });
     } catch (err: any) {
