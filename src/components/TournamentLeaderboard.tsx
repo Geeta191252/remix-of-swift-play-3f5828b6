@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { X, Trophy, Crown, Medal } from "lucide-react";
+import { motion } from "framer-motion";
+import { X, Trophy, Crown, Medal, Clock } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://broken-bria-chetan1-ea890b93.koyeb.app/api";
 
+export interface PrizeTier { fromRank: number; toRank: number; amount: number; }
 export interface Tournament {
   _id: string;
   title: string;
@@ -11,6 +12,7 @@ export interface Tournament {
   prizeCurrency: "dollar" | "star";
   tier: number;
   prizePerWinner: number;
+  prizeTiers?: PrizeTier[];
   gameFilter?: string;
   startedAt: string;
   endsAt?: string | null;
