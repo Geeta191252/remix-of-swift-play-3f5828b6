@@ -247,19 +247,32 @@ const ChickenRoadGame = () => {
           How to play?
         </button>
 
-        {/* Balance pill */}
-        <div
-          className="flex items-center gap-1 px-2.5 h-9 rounded-xl font-bold text-[12px] whitespace-nowrap"
-          style={{
-            background: "#0e1116",
-            border: "1.5px solid hsl(140 80% 50%)",
-            boxShadow: "0 0 10px hsla(140,80%,50%,0.3)",
-            color: "#eaf6ea",
-          }}
-        >
-          {activeWallet === "dollar"
-            ? `${currentBalance.toFixed(2)} $`
-            : `${currentBalance.toFixed(0)} ⭐`}
+        {/* Balance pills: $ and ⭐ */}
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setActiveWallet("dollar")}
+            className="flex items-center gap-1 px-2 h-9 rounded-xl font-bold text-[11px] whitespace-nowrap"
+            style={{
+              background: "#0e1116",
+              border: `1.5px solid ${activeWallet === "dollar" ? "hsl(140 80% 50%)" : "#232735"}`,
+              boxShadow: activeWallet === "dollar" ? "0 0 10px hsla(140,80%,50%,0.35)" : "none",
+              color: activeWallet === "dollar" ? "#eaf6ea" : "#9aa0ab",
+            }}
+          >
+            💲 {gameDollarBalance.toFixed(2)}
+          </button>
+          <button
+            onClick={() => setActiveWallet("star")}
+            className="flex items-center gap-1 px-2 h-9 rounded-xl font-bold text-[11px] whitespace-nowrap"
+            style={{
+              background: "#0e1116",
+              border: `1.5px solid ${activeWallet === "star" ? "hsl(45 90% 55%)" : "#232735"}`,
+              boxShadow: activeWallet === "star" ? "0 0 10px hsla(45,90%,55%,0.35)" : "none",
+              color: activeWallet === "star" ? "#fff4d6" : "#9aa0ab",
+            }}
+          >
+            ⭐ {gameStarBalance.toLocaleString()}
+          </button>
         </div>
 
         {/* Fullscreen */}
