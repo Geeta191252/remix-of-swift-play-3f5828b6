@@ -542,29 +542,48 @@ const AdminPanel = () => {
 
     setCreatingOffer(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/admin/offers/create`, {
+      const isEdit = !!editingOfferId;
+      const url = isEdit ? `${API_BASE_URL}/admin/offers/update` : `${API_BASE_URL}/admin/offers/create`;
+      const body: any = {
+        ownerId: String(OWNER_ID),
+        title: autoTitle,
+        payAmount: payNum,
+        payCurrency: offerForm.payCurrency,
+        getAmount: getNum,
+        bonusLabel: autoBonusLabel,
+        valueLabel: autoValueLabel,
+      };
+      if (isEdit) body.offerId = editingOfferId;
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ownerId: String(OWNER_ID),
-          title: autoTitle,
-          payAmount: payNum,
-          payCurrency: offerForm.payCurrency,
-          getAmount: getNum,
-          bonusLabel: autoBonusLabel,
-          valueLabel: autoValueLabel,
-        }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
-      toast({ title: "Offer created ✅", description: `${autoTitle} is now live.` });
+      toast({ title: isEdit ? "Offer updated ✅" : "Offer created ✅", description: `${autoTitle} is now live.` });
       setOfferForm({ title: "", payAmount: "", payCurrency: "star", getAmount: "", bonusStar: "", bonusDollar: "" });
+      setEditingOfferId(null);
       fetchOffers();
     } catch (err: any) {
-      toast({ title: "Error", description: err?.message || "Could not create offer." });
+      toast({ title: "Error", description: err?.message || "Could not save offer." });
     } finally {
       setCreatingOffer(false);
     }
+  };
+
+  const startEditOffer = (o: BackendOffer) => {
+    const inferred = Math.max(0, Number(o.getAmount || 0) - Number(o.payAmount || 0));
+    setEditingOfferId(o._id);
+    setOfferForm({
+      title: o.title || "",
+      payAmount: String(o.payAmount ?? ""),
+      payCurrency: (o.payCurrency as "star" | "dollar") || "star",
+      getAmount: String(o.getAmount ?? ""),
+      bonusStar: o.payCurrency === "star" ? String(inferred) : "",
+      bonusDollar: o.payCurrency === "dollar" ? String(inferred) : "",
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDeleteOffer = async (offerId: string) => {
