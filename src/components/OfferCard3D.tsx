@@ -141,6 +141,7 @@ const OfferCard3D = ({ offer, onClaim, busy }: Props) => {
               </span>
             </div>
           </div>
+          </>
         );
       })()}
 
