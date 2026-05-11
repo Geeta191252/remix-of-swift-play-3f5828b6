@@ -107,12 +107,11 @@ const AdminPanel = () => {
   // Offers state
   const [offers, setOffers] = useState<AdminOffer[]>([]);
   const [offerForm, setOfferForm] = useState({
-    title: "",
     payAmount: "",
     payCurrency: "star" as "star" | "dollar",
     getAmount: "",
-    bonusAmount: "", // always extra ⭐
-    discountPercent: "", // e.g. "80" → "80% OFF" badge + "80% VALUE" ribbon
+    bonusStar: "",   // extra ⭐ (for both star and dollar offers)
+    bonusDollar: "", // extra $ (only for dollar offers)
   });
   const [creatingOffer, setCreatingOffer] = useState(false);
   const [broadcastingId, setBroadcastingId] = useState<string | null>(null);
