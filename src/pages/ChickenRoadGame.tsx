@@ -23,13 +23,13 @@ import { useBalanceContext } from "@/contexts/BalanceContext";
 import { reportGameResult, getTelegram } from "@/lib/telegram";
 import { toast } from "@/hooks/use-toast";
 
-// ============= RIGGING (house edge) =============
+// ============= RIGGING (heavy house edge) =============
 // Tracks lifetime bets/wins per user+currency in localStorage.
 // Rules:
-//  - First 5 games: ALWAYS lose (force crash on lane 1).
-//  - After that: allow wins, but cap so lifetime win ratio stays <= 50%.
-//    i.e. maxAllowedWin (this round) = max(0, 0.5 * totalBet - totalWin)
-//  - If next lane's payout would exceed cap → force crash.
+//  - First 10 games: ALWAYS lose (force crash on next lane).
+//  - After that: allow wins, but cap so lifetime win ratio stays <= 30%.
+//    i.e. maxAllowedWin (this round) = max(0, 0.3 * totalBet - totalWin)
+//  - Plus per-step random crash chance (rises with lane) → wins are rare.
 //  - User cannot cash out above the cap (auto-crashes instead).
 type RigStats = { totalBet: number; totalWin: number; games: number };
 const rigKey = (currency: "dollar" | "star") => {
