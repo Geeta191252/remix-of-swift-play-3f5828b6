@@ -572,7 +572,7 @@ const AdminPanel = () => {
     }
   };
 
-  const startEditOffer = (o: BackendOffer) => {
+  const startEditOffer = (o: AdminOffer) => {
     const inferred = Math.max(0, Number(o.getAmount || 0) - Number(o.payAmount || 0));
     setEditingOfferId(o._id);
     setOfferForm({
