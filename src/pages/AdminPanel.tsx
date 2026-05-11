@@ -1291,6 +1291,14 @@ const AdminPanel = () => {
                               {broadcastingId === o._id ? "Sending…" : "Broadcast"}
                             </button>
                             <button
+                              onClick={() => startEditOffer(o)}
+                              className="px-3 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1"
+                              style={{ background: "linear-gradient(135deg, hsl(35 85% 50%), hsl(20 80% 45%))", color: "white" }}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                              Edit
+                            </button>
+                            <button
                               onClick={() => handleDeleteOffer(o._id)}
                               disabled={deletingOfferId === o._id}
                               className="px-3 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 disabled:opacity-50"
