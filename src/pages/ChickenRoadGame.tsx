@@ -23,15 +23,20 @@ import { useBalanceContext } from "@/contexts/BalanceContext";
 import { reportGameResult, getTelegram } from "@/lib/telegram";
 import { toast } from "@/hooks/use-toast";
 
-// ============= RIGGING (heavy house edge, mixed pattern) =============
+// ============= RIGGING (heavy house edge, believable pattern) =============
 // Tracks lifetime bets/wins per user+currency in localStorage.
 // Rules:
-//  - No "always lose first N" rule — mix small wins with losses naturally.
-//  - Lifetime win ratio capped at <= 30% (heavy house edge).
-//    maxAllowedWin (this round) = max(0, 0.3 * totalBet - totalWin)
-//  - Per-step random crash chance (rises with lane) → big wins very rare.
-//  - User cannot cash out above the cap (auto-crashes instead).
-type RigStats = { totalBet: number; totalWin: number; games: number };
+//  - Keep RTP low, but never let users see impossible-looking 20–30 loss streaks.
+//  - After repeated losses, allow a tiny early cashout to reset trust.
+//  - Deep lanes remain dangerous, so large payouts are still rare.
+type RigStats = {
+  totalBet: number;
+  totalWin: number;
+  games: number;
+  lossStreak: number;
+  winStreak: number;
+};
+const DEFAULT_RIG: RigStats = { totalBet: 0, totalWin: 0, games: 0, lossStreak: 0, winStreak: 0 };
 const rigKey = (currency: "dollar" | "star") => {
   const uid = getTelegram()?.initDataUnsafe?.user?.id ?? "demo";
   return `chickenroad_rig_${uid}_${currency}`;
@@ -39,12 +44,18 @@ const rigKey = (currency: "dollar" | "star") => {
 const readRig = (currency: "dollar" | "star"): RigStats => {
   try {
     const raw = localStorage.getItem(rigKey(currency));
-    if (raw) return JSON.parse(raw);
+    if (raw) return { ...DEFAULT_RIG, ...JSON.parse(raw) };
   } catch {}
-  return { totalBet: 0, totalWin: 0, games: 0 };
+  return { ...DEFAULT_RIG };
 };
 const writeRig = (currency: "dollar" | "star", s: RigStats) => {
   try { localStorage.setItem(rigKey(currency), JSON.stringify(s)); } catch {}
+};
+const floorMoney = (value: number) => Math.floor(value * 100) / 100;
+const getAllowedWinCap = (stats: RigStats, betAmount: number) => {
+  const rtpCap = Math.max(0, 0.3 * stats.totalBet - stats.totalWin);
+  const mercyCap = stats.lossStreak >= 2 ? betAmount * 1.12 : 0;
+  return Math.max(rtpCap, mercyCap);
 };
 
 type Difficulty = "easy" | "medium" | "hard" | "hardcore";
