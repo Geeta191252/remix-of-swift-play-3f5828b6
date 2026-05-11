@@ -519,10 +519,14 @@ const AdminPanel = () => {
     // Auto title
     const autoTitle = (offerForm.title || (offerForm.payCurrency === "star" ? "SPECIAL OFFER" : "MEGA DEAL")).trim();
 
+    const inferredBonus = Math.max(0, getNum - payNum);
+    const finalBonusStarNum = offerForm.payCurrency === "star" && bonusStarNum <= 0 ? inferredBonus : bonusStarNum;
+    const finalBonusDollarNum = offerForm.payCurrency === "dollar" && bonusDollarNum <= 0 ? inferredBonus : bonusDollarNum;
+
     // Auto bonus label
     const bonusParts: string[] = [];
-    if (offerForm.payCurrency === "dollar" && bonusDollarNum > 0) bonusParts.push(`+$${bonusDollarNum}`);
-    if (bonusStarNum > 0) bonusParts.push(`+${bonusStarNum} ⭐`);
+    if (offerForm.payCurrency === "dollar" && finalBonusDollarNum > 0) bonusParts.push(`+$${finalBonusDollarNum}`);
+    if (finalBonusStarNum > 0) bonusParts.push(`+${finalBonusStarNum} ⭐`);
     const autoBonusLabel = bonusParts.join(" ");
 
     // Auto value % — bonus value vs pay amount (same currency basis)
@@ -530,8 +534,8 @@ const AdminPanel = () => {
     // For $ offer: % = (bonusDollar + bonusStar/100) / payAmount * 100  (rough ⭐→$ at 100⭐=$1)
     const bonusValue =
       offerForm.payCurrency === "star"
-        ? bonusStarNum
-        : bonusDollarNum + bonusStarNum / 100;
+        ? finalBonusStarNum
+        : finalBonusDollarNum + finalBonusStarNum / 100;
     const pct = payNum > 0 ? Math.round((bonusValue / payNum) * 100) : 0;
     const autoValueLabel = pct > 0 ? `${pct}% OFF` : "";
 
