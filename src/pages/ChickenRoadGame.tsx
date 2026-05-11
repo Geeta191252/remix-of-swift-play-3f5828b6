@@ -345,21 +345,21 @@ const ChickenRoadGame = () => {
         className="relative flex-1 overflow-hidden"
         style={{ background: "#1a1c1e", perspective: "1200px" }}
       >
-        {/* Asphalt texture */}
+        {/* Realistic 3D asphalt texture */}
         <div
           className="absolute inset-0"
           style={{
             backgroundImage: `url(${asphaltImg})`,
             backgroundRepeat: "repeat",
-            backgroundSize: "240px 240px",
-            filter: "brightness(0.55) saturate(0.6)",
+            backgroundSize: "72px 360px",
+            filter: "brightness(0.85) contrast(1.1) saturate(0.9)",
           }}
         />
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              "radial-gradient(ellipse at 50% 35%, rgba(255,255,255,0.06), transparent 70%), linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.55) 100%)",
+              "radial-gradient(ellipse at 50% 30%, rgba(255,255,255,0.08), transparent 75%), linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.4) 100%)",
           }}
         />
 
