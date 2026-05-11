@@ -54,7 +54,7 @@ const writeRig = (currency: "dollar" | "star", s: RigStats) => {
 const floorMoney = (value: number) => Math.floor(value * 100) / 100;
 const getAllowedWinCap = (stats: RigStats, betAmount: number) => {
   const rtpCap = Math.max(0, 0.3 * stats.totalBet - stats.totalWin);
-  const mercyCap = stats.lossStreak >= 2 ? betAmount * 1.12 : 0;
+  const mercyCap = stats.lossStreak >= 5 ? betAmount * 1.65 : stats.lossStreak >= 2 ? betAmount * 1.12 : 0;
   return Math.max(rtpCap, mercyCap);
 };
 
