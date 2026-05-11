@@ -508,10 +508,32 @@ const AdminPanel = () => {
   const handleCreateOffer = async () => {
     const payNum = parseFloat(offerForm.payAmount);
     const getNum = parseFloat(offerForm.getAmount);
-    if (!offerForm.title.trim() || isNaN(payNum) || payNum <= 0 || isNaN(getNum) || getNum <= 0) {
-      toast({ title: "Invalid offer", description: "Fill title, pay & get amounts." });
+    if (isNaN(payNum) || payNum <= 0 || isNaN(getNum) || getNum <= 0) {
+      toast({ title: "Invalid offer", description: "Fill pay & get amounts." });
       return;
     }
+    const bonusStarNum = parseFloat(offerForm.bonusStar) || 0;
+    const bonusDollarNum = parseFloat(offerForm.bonusDollar) || 0;
+
+    // Auto title
+    const autoTitle = offerForm.payCurrency === "star" ? "STAR DEAL" : "MEGA DEAL";
+
+    // Auto bonus label
+    const bonusParts: string[] = [];
+    if (offerForm.payCurrency === "dollar" && bonusDollarNum > 0) bonusParts.push(`+$${bonusDollarNum}`);
+    if (bonusStarNum > 0) bonusParts.push(`+${bonusStarNum} ⭐`);
+    const autoBonusLabel = bonusParts.join(" ");
+
+    // Auto value % — bonus value vs pay amount (same currency basis)
+    // For ⭐ offer: % = bonusStar / payAmount * 100
+    // For $ offer: % = (bonusDollar + bonusStar/100) / payAmount * 100  (rough ⭐→$ at 100⭐=$1)
+    const bonusValue =
+      offerForm.payCurrency === "star"
+        ? bonusStarNum
+        : bonusDollarNum + bonusStarNum / 100;
+    const pct = payNum > 0 ? Math.round((bonusValue / payNum) * 100) : 0;
+    const autoValueLabel = pct > 0 ? `${pct}% OFF` : "";
+
     setCreatingOffer(true);
     try {
       const res = await fetch(`${API_BASE_URL}/admin/offers/create`, {
@@ -519,18 +541,18 @@ const AdminPanel = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ownerId: String(OWNER_ID),
-          title: offerForm.title.trim(),
+          title: autoTitle,
           payAmount: payNum,
           payCurrency: offerForm.payCurrency,
           getAmount: getNum,
-          bonusLabel: offerForm.bonusAmount.trim() ? `+${offerForm.bonusAmount.trim()} ⭐` : "",
-          valueLabel: offerForm.discountPercent.trim() ? `${offerForm.discountPercent.trim()}% OFF` : "",
+          bonusLabel: autoBonusLabel,
+          valueLabel: autoValueLabel,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
-      toast({ title: "Offer created ✅", description: `${offerForm.title} is now live in Market.` });
-      setOfferForm({ title: "", payAmount: "", payCurrency: "star", getAmount: "", bonusAmount: "", discountPercent: "" });
+      toast({ title: "Offer created ✅", description: `${autoTitle} is now live.` });
+      setOfferForm({ payAmount: "", payCurrency: "star", getAmount: "", bonusStar: "", bonusDollar: "" });
       fetchOffers();
     } catch (err: any) {
       toast({ title: "Error", description: err?.message || "Could not create offer." });
