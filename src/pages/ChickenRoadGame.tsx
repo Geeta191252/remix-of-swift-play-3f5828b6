@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Menu, X } from "lucide-react";
+import { BookOpen, Menu, X, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import chickenImg from "@/assets/chickenroad/chicken-3d.png";
 import sidewalk3dImg from "@/assets/chickenroad/sidewalk-3d.jpg";
@@ -237,39 +237,49 @@ const ChickenRoadGame = () => {
       className="min-h-screen flex flex-col select-none"
       style={{
         background: "linear-gradient(180deg, #0a0a0f 0%, #050507 100%)",
+        paddingTop: "env(safe-area-inset-top, 0px)",
       }}
     >
       {/* ============ TOP BAR ============ */}
-      <div className="flex items-center justify-between gap-2 px-3 py-2.5" style={{ background: "#0a0a0f" }}>
+      <div
+        className="flex items-center justify-between gap-1.5 px-2 py-2"
+        style={{ background: "#0a0a0f" }}
+      >
+        {/* Back */}
+        <button
+          onClick={() => navigate("/")}
+          aria-label="Back"
+          className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 active:scale-95"
+          style={{ background: "#15161c", border: "1px solid #2a2c36", color: "#cfd2dc" }}
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </button>
+
         {/* Logo */}
         <button onClick={() => navigate("/")} className="shrink-0 active:scale-95 transition-transform">
           <img
             src={logoImg}
             alt="Chicken Road"
-            className="h-11 w-auto"
+            className="h-9 w-auto"
             style={{ filter: "drop-shadow(0 0 8px rgba(255,120,30,0.5))" }}
           />
         </button>
 
-        {/* How to play */}
+        {/* How to play (icon only) */}
         <button
           onClick={() => setHowOpen(true)}
-          className="flex items-center gap-1.5 px-2.5 h-9 rounded-xl text-[11px] font-semibold whitespace-nowrap"
-          style={{
-            background: "#15161c",
-            border: "1px solid #2a2c36",
-            color: "#cfd2dc",
-          }}
+          aria-label="How to play"
+          className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background: "#15161c", border: "1px solid #2a2c36", color: "#cfd2dc" }}
         >
-          <BookOpen className="h-3.5 w-3.5" />
-          How to play?
+          <BookOpen className="h-4 w-4" />
         </button>
 
         {/* Balance pills: $ and ⭐ */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1 ml-auto min-w-0">
           <button
             onClick={() => setActiveWallet("dollar")}
-            className="flex items-center gap-1 px-2 h-9 rounded-xl font-bold text-[11px] whitespace-nowrap"
+            className="flex items-center gap-1 px-2 h-9 rounded-xl font-bold text-[11px] whitespace-nowrap max-w-[90px] truncate"
             style={{
               background: "#0e1116",
               border: `1.5px solid ${activeWallet === "dollar" ? "hsl(140 80% 50%)" : "#232735"}`,
@@ -277,11 +287,11 @@ const ChickenRoadGame = () => {
               color: activeWallet === "dollar" ? "#eaf6ea" : "#9aa0ab",
             }}
           >
-            💲 {gameDollarBalance.toFixed(2)}
+            💲 {gameDollarBalance < 10000 ? gameDollarBalance.toFixed(2) : `${(gameDollarBalance / 1000).toFixed(1)}k`}
           </button>
           <button
             onClick={() => setActiveWallet("star")}
-            className="flex items-center gap-1 px-2 h-9 rounded-xl font-bold text-[11px] whitespace-nowrap"
+            className="flex items-center gap-1 px-2 h-9 rounded-xl font-bold text-[11px] whitespace-nowrap max-w-[80px] truncate"
             style={{
               background: "#0e1116",
               border: `1.5px solid ${activeWallet === "star" ? "hsl(45 90% 55%)" : "#232735"}`,
