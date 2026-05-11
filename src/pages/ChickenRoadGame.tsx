@@ -44,7 +44,7 @@ const DIFFICULTY_CONFIG: Record<
     ring: "hsl(210 95% 70%)",
   },
   hard: {
-    multipliers: [1.23, 1.47, 2.27, 4.30, 9.80, 26.60, 85.13, 318.9, 1390.2, 7020.5, 40899],
+    multipliers: [1.23, 1.55, 1.97, 2.50, 4.33, 10.21, 32.75, 143.0, 850.4, 6885, 40899],
     crashBase: 0.28,
     label: "Hard",
     color: "hsl(28 95% 55%)",
