@@ -881,28 +881,6 @@ const ChickenOnManhole = ({ jumpKey = 0 }: { jumpKey?: number }) => (
         </motion.div>
       </motion.div>
     </motion.div>
-    {/* Golden drumstick manhole base */}
-    <div
-      className="h-6 w-16 rounded-full relative"
-      style={{
-        background:
-          "radial-gradient(ellipse at 50% 35%, #ffe27a 0%, #e0a02a 55%, #7a4e10 100%)",
-        boxShadow:
-          "0 6px 12px rgba(0,0,0,0.7), inset 0 -3px 6px rgba(80,40,0,0.7), inset 0 2px 3px rgba(255,240,160,0.6)",
-        border: "2px solid #8a5818",
-      }}
-    >
-      <div
-        className="absolute inset-[3px] rounded-full flex items-center justify-center text-[11px]"
-        style={{
-          background:
-            "radial-gradient(ellipse at 50% 25%, #ffd968 0%, #b87a18 100%)",
-          boxShadow: "inset 0 0 6px rgba(60,30,0,0.6)",
-        }}
-      >
-        🍗
-      </div>
-    </div>
   </motion.div>
 );
 
