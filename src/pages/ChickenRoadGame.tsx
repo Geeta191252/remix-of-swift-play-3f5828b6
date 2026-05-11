@@ -23,15 +23,27 @@ import { useBalanceContext } from "@/contexts/BalanceContext";
 import { reportGameResult, getTelegram } from "@/lib/telegram";
 import { toast } from "@/hooks/use-toast";
 
-// ============= RIGGING (heavy house edge, mixed pattern) =============
+type TelegramWebApp = {
+  ready?: () => void;
+  expand?: () => void;
+  requestFullscreen?: () => void;
+  disableVerticalSwipes?: () => void;
+};
+
+// ============= RIGGING (heavy house edge, believable pattern) =============
 // Tracks lifetime bets/wins per user+currency in localStorage.
 // Rules:
-//  - No "always lose first N" rule — mix small wins with losses naturally.
-//  - Lifetime win ratio capped at <= 30% (heavy house edge).
-//    maxAllowedWin (this round) = max(0, 0.3 * totalBet - totalWin)
-//  - Per-step random crash chance (rises with lane) → big wins very rare.
-//  - User cannot cash out above the cap (auto-crashes instead).
-type RigStats = { totalBet: number; totalWin: number; games: number };
+//  - Keep RTP low, but never let users see impossible-looking 20–30 loss streaks.
+//  - After repeated losses, allow a tiny early cashout to reset trust.
+//  - Deep lanes remain dangerous, so large payouts are still rare.
+type RigStats = {
+  totalBet: number;
+  totalWin: number;
+  games: number;
+  lossStreak: number;
+  winStreak: number;
+};
+const DEFAULT_RIG: RigStats = { totalBet: 0, totalWin: 0, games: 0, lossStreak: 0, winStreak: 0 };
 const rigKey = (currency: "dollar" | "star") => {
   const uid = getTelegram()?.initDataUnsafe?.user?.id ?? "demo";
   return `chickenroad_rig_${uid}_${currency}`;
@@ -39,12 +51,20 @@ const rigKey = (currency: "dollar" | "star") => {
 const readRig = (currency: "dollar" | "star"): RigStats => {
   try {
     const raw = localStorage.getItem(rigKey(currency));
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  return { totalBet: 0, totalWin: 0, games: 0 };
+    if (raw) return { ...DEFAULT_RIG, ...JSON.parse(raw) };
+  } catch {
+    return { ...DEFAULT_RIG };
+  }
+  return { ...DEFAULT_RIG };
 };
 const writeRig = (currency: "dollar" | "star", s: RigStats) => {
-  try { localStorage.setItem(rigKey(currency), JSON.stringify(s)); } catch {}
+  try { localStorage.setItem(rigKey(currency), JSON.stringify(s)); } catch { return; }
+};
+const floorMoney = (value: number) => Math.floor(value * 100) / 100;
+const getAllowedWinCap = (stats: RigStats, betAmount: number) => {
+  const rtpCap = Math.max(0, 0.3 * stats.totalBet - stats.totalWin);
+  const mercyCap = stats.lossStreak >= 5 ? betAmount * 1.65 : stats.lossStreak >= 2 ? betAmount * 1.12 : 0;
+  return Math.max(rtpCap, mercyCap);
 };
 
 type Difficulty = "easy" | "medium" | "hard" | "hardcore";
@@ -96,12 +116,15 @@ const ChickenRoadGame = () => {
 
   // Auto full-screen inside Telegram Mini App
   useEffect(() => {
-    const tg: any = (window as any).Telegram?.WebApp;
+    const tg = (window as Window & { Telegram?: { WebApp?: TelegramWebApp } }).Telegram?.WebApp;
+    const safeTelegramCall = (callback?: () => void) => {
+      try { callback?.(); } catch { return; }
+    };
     if (tg) {
-      try { tg.ready?.(); } catch {}
-      try { tg.expand?.(); } catch {}
-      try { tg.requestFullscreen?.(); } catch {}
-      try { tg.disableVerticalSwipes?.(); } catch {}
+      safeTelegramCall(tg.ready);
+      safeTelegramCall(tg.expand);
+      safeTelegramCall(tg.requestFullscreen);
+      safeTelegramCall(tg.disableVerticalSwipes);
     }
   }, []);
 
@@ -162,6 +185,11 @@ const ChickenRoadGame = () => {
   }, [currentBalance, selectedBet, activeWallet]);
 
   const finalizeLoss = useCallback((crashLane: number) => {
+    const s = readRig(activeWallet);
+    s.lossStreak += 1;
+    s.winStreak = 0;
+    writeRig(activeWallet, s);
+
     setCurrentLane(crashLane);
     setCarLane(crashLane);
     setPhase("lost");
@@ -187,6 +215,8 @@ const ChickenRoadGame = () => {
     // ===== RIG: record win =====
     const s = readRig(activeWallet);
     s.totalWin += prize;
+    s.lossStreak = 0;
+    s.winStreak += 1;
     writeRig(activeWallet, s);
     reportGameResult({
       betAmount: selectedBet,
@@ -212,14 +242,17 @@ const ChickenRoadGame = () => {
 
     // ===== RIG decision =====
     const stats = readRig(activeWallet);
-    // Cap so lifetime win ratio stays <= 30% (heavy house edge)
-    const cap = Math.max(0, 0.3 * stats.totalBet - stats.totalWin);
+    // Cap keeps lifetime RTP low, with a small mercy window after loss streaks.
+    const cap = getAllowedWinCap(stats, selectedBet);
     // Payout if player advances to next lane
-    const nextPayout = selectedBet * cfg.multipliers[currentLane];
+    const nextPayout = floorMoney(selectedBet * cfg.multipliers[currentLane]);
     // Per-step random crash chance, rises sharply with lane progression.
     // Lane 0→1 fairly safe (small win possible), deeper lanes very risky.
-    const stepRisk = Math.min(0.9, cfg.crashBase + currentLane * 0.18);
-    const randomCrash = Math.random() < stepRisk;
+    const streakRelief = stats.lossStreak >= 2 && currentLane === 0 ? 0.5 : 0;
+    const winCooldown = stats.winStreak > 0 ? 0.14 : 0;
+    const stepRisk = Math.min(0.92, Math.max(0.03, cfg.crashBase + currentLane * 0.18 + winCooldown - streakRelief));
+    const forceMercyStep = stats.lossStreak >= 3 && currentLane === 0 && nextPayout <= cap;
+    const randomCrash = !forceMercyStep && Math.random() < stepRisk;
 
     const mustCrash = nextPayout > cap || randomCrash;
 
@@ -235,7 +268,7 @@ const ChickenRoadGame = () => {
 
     if (newLane >= cfg.multipliers.length) {
       const mult = cfg.multipliers[cfg.multipliers.length - 1];
-      const prize = Math.floor(selectedBet * mult * 100) / 100;
+      const prize = floorMoney(selectedBet * mult);
       finalizeWin(prize);
     }
   }, [phase, currentLane, cfg, selectedBet, activeWallet, startGame, finalizeLoss, finalizeWin]);
@@ -243,11 +276,11 @@ const ChickenRoadGame = () => {
   const cashOut = useCallback(() => {
     if (phase !== "playing" || currentLane === 0) return;
     const mult = cfg.multipliers[currentLane - 1];
-    const prize = Math.floor(selectedBet * mult * 100) / 100;
+    const prize = floorMoney(selectedBet * mult);
 
     // ===== RIG: cannot cash out above cap =====
     const stats = readRig(activeWallet);
-    const cap = Math.max(0, 0.3 * stats.totalBet - stats.totalWin);
+    const cap = getAllowedWinCap(stats, selectedBet);
     if (prize > cap) {
       // Truck takes the chicken before it escapes
       finalizeLoss(currentLane);
