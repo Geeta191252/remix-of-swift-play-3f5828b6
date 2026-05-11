@@ -13,6 +13,7 @@ import CarnivalSpinGame from "./pages/CarnivalSpinGame";
 import MinesGame from "./pages/MinesGame";
 import AviatorGame from "./pages/AviatorGame";
 import PlinkoGame from "./pages/PlinkoGame";
+import ChickenRoadGame from "./pages/ChickenRoadGame";
 import AdminPanel from "./pages/AdminPanel";
 
 import NotFound from "./pages/NotFound";
@@ -29,6 +30,7 @@ const STARTAPP_GAME_ROUTES: Record<string, string> = {
   g_carnival: "/carnival-spin",
   g_greedy: "/greedy-king",
   g_plinko: "/plinko",
+  g_chicken: "/chicken-road",
 };
 
 const StartParamNavigator = () => {
@@ -64,6 +66,7 @@ const App = () => (
               <Route path="/mines" element={<MinesGame />} />
               <Route path="/aviator" element={<AviatorGame />} />
               <Route path="/plinko" element={<PlinkoGame />} />
+              <Route path="/chicken-road" element={<ChickenRoadGame />} />
               <Route path="/admin" element={<AdminPanel />} />
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
