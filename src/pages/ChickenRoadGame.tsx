@@ -23,13 +23,13 @@ import { useBalanceContext } from "@/contexts/BalanceContext";
 import { reportGameResult, getTelegram } from "@/lib/telegram";
 import { toast } from "@/hooks/use-toast";
 
-// ============= RIGGING (house edge) =============
+// ============= RIGGING (heavy house edge) =============
 // Tracks lifetime bets/wins per user+currency in localStorage.
 // Rules:
-//  - First 5 games: ALWAYS lose (force crash on lane 1).
-//  - After that: allow wins, but cap so lifetime win ratio stays <= 50%.
-//    i.e. maxAllowedWin (this round) = max(0, 0.5 * totalBet - totalWin)
-//  - If next lane's payout would exceed cap → force crash.
+//  - First 10 games: ALWAYS lose (force crash on next lane).
+//  - After that: allow wins, but cap so lifetime win ratio stays <= 30%.
+//    i.e. maxAllowedWin (this round) = max(0, 0.3 * totalBet - totalWin)
+//  - Plus per-step random crash chance (rises with lane) → wins are rare.
 //  - User cannot cash out above the cap (auto-crashes instead).
 type RigStats = { totalBet: number; totalWin: number; games: number };
 const rigKey = (currency: "dollar" | "star") => {
@@ -212,14 +212,17 @@ const ChickenRoadGame = () => {
 
     // ===== RIG decision =====
     const stats = readRig(activeWallet);
-    // First 5 games: always lose
-    const forceLoseEarly = stats.games <= 5;
-    // Cap so lifetime win ratio stays <= 50%
-    const cap = Math.max(0, 0.5 * stats.totalBet - stats.totalWin);
+    // First 10 games: always lose
+    const forceLoseEarly = stats.games <= 10;
+    // Cap so lifetime win ratio stays <= 30% (heavy house edge, wins very rare)
+    const cap = Math.max(0, 0.3 * stats.totalBet - stats.totalWin);
     // Payout if player advances to next lane
     const nextPayout = selectedBet * cfg.multipliers[currentLane];
+    // Random crash chance per step, increasing with lane progression
+    const stepRisk = Math.min(0.85, cfg.crashBase + currentLane * 0.12);
+    const randomCrash = Math.random() < stepRisk;
 
-    const mustCrash = forceLoseEarly || nextPayout > cap;
+    const mustCrash = forceLoseEarly || nextPayout > cap || randomCrash;
 
     if (mustCrash) {
       const crashLane = currentLane + 1;
@@ -245,8 +248,8 @@ const ChickenRoadGame = () => {
 
     // ===== RIG: cannot cash out above cap =====
     const stats = readRig(activeWallet);
-    const forceLoseEarly = stats.games <= 5;
-    const cap = Math.max(0, 0.5 * stats.totalBet - stats.totalWin);
+    const forceLoseEarly = stats.games <= 10;
+    const cap = Math.max(0, 0.3 * stats.totalBet - stats.totalWin);
     if (forceLoseEarly || prize > cap) {
       // Truck takes the chicken before it escapes
       finalizeLoss(currentLane);
