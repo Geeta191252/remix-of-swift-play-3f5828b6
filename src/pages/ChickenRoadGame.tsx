@@ -2,6 +2,14 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, Maximize2, Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import chickenImg from "@/assets/chickenroad/chicken.png";
+import manholeImg from "@/assets/chickenroad/manhole.png";
+import signboardImg from "@/assets/chickenroad/signboard.png";
+import truckImg from "@/assets/chickenroad/truck.png";
+import carImg from "@/assets/chickenroad/car.png";
+import barrierImg from "@/assets/chickenroad/barrier.png";
+import logoImg from "@/assets/chickenroad/logo.png";
+import asphaltImg from "@/assets/chickenroad/asphalt.jpg";
 import {
   playBetSound,
   playWinSound,
