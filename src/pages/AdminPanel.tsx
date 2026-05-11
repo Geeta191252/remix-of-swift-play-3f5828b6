@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Users, Star, DollarSign, RefreshCw, User, CreditCard, Plus, Minus, X, Copy, Tag, Send, Trash2, Trophy, Gamepad2, TrendingUp, TrendingDown } from "lucide-react";
+import { ArrowLeft, Users, Star, DollarSign, RefreshCw, User, CreditCard, Plus, Minus, X, Copy, Tag, Send, Trash2, Trophy, Gamepad2, TrendingUp, TrendingDown, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { getTelegramUser } from "@/lib/telegram";
@@ -117,6 +117,7 @@ const AdminPanel = () => {
   const [creatingOffer, setCreatingOffer] = useState(false);
   const [broadcastingId, setBroadcastingId] = useState<string | null>(null);
   const [deletingOfferId, setDeletingOfferId] = useState<string | null>(null);
+  const [editingOfferId, setEditingOfferId] = useState<string | null>(null);
 
   // Tournaments state
   const [tournaments, setTournaments] = useState<AdminTournament[]>([]);
@@ -541,29 +542,48 @@ const AdminPanel = () => {
 
     setCreatingOffer(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/admin/offers/create`, {
+      const isEdit = !!editingOfferId;
+      const url = isEdit ? `${API_BASE_URL}/admin/offers/update` : `${API_BASE_URL}/admin/offers/create`;
+      const body: any = {
+        ownerId: String(OWNER_ID),
+        title: autoTitle,
+        payAmount: payNum,
+        payCurrency: offerForm.payCurrency,
+        getAmount: getNum,
+        bonusLabel: autoBonusLabel,
+        valueLabel: autoValueLabel,
+      };
+      if (isEdit) body.offerId = editingOfferId;
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ownerId: String(OWNER_ID),
-          title: autoTitle,
-          payAmount: payNum,
-          payCurrency: offerForm.payCurrency,
-          getAmount: getNum,
-          bonusLabel: autoBonusLabel,
-          valueLabel: autoValueLabel,
-        }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
-      toast({ title: "Offer created ✅", description: `${autoTitle} is now live.` });
+      toast({ title: isEdit ? "Offer updated ✅" : "Offer created ✅", description: `${autoTitle} is now live.` });
       setOfferForm({ title: "", payAmount: "", payCurrency: "star", getAmount: "", bonusStar: "", bonusDollar: "" });
+      setEditingOfferId(null);
       fetchOffers();
     } catch (err: any) {
-      toast({ title: "Error", description: err?.message || "Could not create offer." });
+      toast({ title: "Error", description: err?.message || "Could not save offer." });
     } finally {
       setCreatingOffer(false);
     }
+  };
+
+  const startEditOffer = (o: AdminOffer) => {
+    const inferred = Math.max(0, Number(o.getAmount || 0) - Number(o.payAmount || 0));
+    setEditingOfferId(o._id);
+    setOfferForm({
+      title: o.title || "",
+      payAmount: String(o.payAmount ?? ""),
+      payCurrency: (o.payCurrency as "star" | "dollar") || "star",
+      getAmount: String(o.getAmount ?? ""),
+      bonusStar: o.payCurrency === "star" ? String(inferred) : "",
+      bonusDollar: o.payCurrency === "dollar" ? String(inferred) : "",
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDeleteOffer = async (offerId: string) => {
@@ -1201,14 +1221,30 @@ const AdminPanel = () => {
                   style={{ background: "hsla(260, 40%, 15%, 0.8)", color: "hsl(0 0% 95%)", border: "1px solid hsla(280, 60%, 50%, 0.3)" }}
                 />
 
-                <button
-                  onClick={handleCreateOffer}
-                  disabled={creatingOffer}
-                  className="w-full py-2.5 rounded-lg text-sm font-bold disabled:opacity-50"
-                  style={{ background: "linear-gradient(135deg, hsl(140 70% 40%), hsl(160 60% 35%))", color: "white" }}
-                >
-                  {creatingOffer ? "Creating…" : "➕ Create Offer"}
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleCreateOffer}
+                    disabled={creatingOffer}
+                    className="flex-1 py-2.5 rounded-lg text-sm font-bold disabled:opacity-50"
+                    style={{ background: editingOfferId
+                      ? "linear-gradient(135deg, hsl(35 85% 50%), hsl(20 80% 45%))"
+                      : "linear-gradient(135deg, hsl(140 70% 40%), hsl(160 60% 35%))", color: "white" }}
+                  >
+                    {creatingOffer ? (editingOfferId ? "Updating…" : "Creating…") : (editingOfferId ? "💾 Update Offer" : "➕ Create Offer")}
+                  </button>
+                  {editingOfferId && (
+                    <button
+                      onClick={() => {
+                        setEditingOfferId(null);
+                        setOfferForm({ title: "", payAmount: "", payCurrency: "star", getAmount: "", bonusStar: "", bonusDollar: "" });
+                      }}
+                      className="px-3 py-2.5 rounded-lg text-sm font-bold"
+                      style={{ background: "hsla(0, 0%, 100%, 0.1)", color: "hsl(0 0% 90%)" }}
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Existing offers */}
@@ -1253,6 +1289,14 @@ const AdminPanel = () => {
                             >
                               <Send className="h-3.5 w-3.5" />
                               {broadcastingId === o._id ? "Sending…" : "Broadcast"}
+                            </button>
+                            <button
+                              onClick={() => startEditOffer(o)}
+                              className="px-3 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1"
+                              style={{ background: "linear-gradient(135deg, hsl(35 85% 50%), hsl(20 80% 45%))", color: "white" }}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                              Edit
                             </button>
                             <button
                               onClick={() => handleDeleteOffer(o._id)}

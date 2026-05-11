@@ -2475,6 +2475,30 @@ app.post("/api/admin/offers/create", async (req, res) => {
   }
 });
 
+// POST /api/admin/offers/update — admin: edit an existing offer
+app.post("/api/admin/offers/update", async (req, res) => {
+  try {
+    const { ownerId, offerId, title, payAmount, payCurrency, getAmount, bonusLabel, valueLabel } = req.body || {};
+    if (String(ownerId) !== "6965488457") return res.status(403).json({ error: "Unauthorized" });
+    if (!offerId) return res.status(400).json({ error: "Missing offerId" });
+    const update = {};
+    if (title !== undefined) update.title = String(title);
+    if (payAmount !== undefined) update.payAmount = Number(payAmount);
+    if (payCurrency !== undefined) {
+      if (!["star", "dollar"].includes(payCurrency)) return res.status(400).json({ error: "payCurrency must be star or dollar" });
+      update.payCurrency = payCurrency;
+    }
+    if (getAmount !== undefined) update.getAmount = Number(getAmount);
+    if (bonusLabel !== undefined) update.bonusLabel = bonusLabel || "";
+    if (valueLabel !== undefined) update.valueLabel = valueLabel || "";
+    const offer = await Offer.findByIdAndUpdate(offerId, update, { new: true });
+    if (!offer) return res.status(404).json({ error: "Offer not found" });
+    res.json({ success: true, offer });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // POST /api/admin/offers/delete — admin: delete an offer
 app.post("/api/admin/offers/delete", async (req, res) => {
   try {
